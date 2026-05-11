@@ -17,6 +17,9 @@ namespace FadePlanet
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
+
+            //Chicken
+
         }
     }
 }
