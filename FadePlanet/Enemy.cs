@@ -13,16 +13,28 @@ namespace FadePlanet
     {
         #region Enemy Stats
         public ElementType ElementType { get; private set; }
-        private float Health { get; set; } = 50f; // Default health, can be adjusted based on enemy type
+        private int Health { get; set; } = 50; // Default health, can be adjusted based on enemy type
         #endregion
 
         public Enemy(Point pos, Size size) : base(pos, size, ObjectType.Enemy)
         {
         }
 
-        public override void OnHit(float damage)
+        public override void OnHit(int damage)
         {
-            
+            Health -= damage;
+            if (Health <= 0)
+            {
+                Health = 0;
+                OnDeath();
+            }
+        }
+
+        public override void OnDeath()
+        {
+            // Handle enemy death (e.g., remove from game, drop loot, etc.)
+            // For now, we just remove it from the game
+            GameManager.DespawnObject(this);
         }
     }
 }

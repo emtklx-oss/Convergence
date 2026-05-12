@@ -69,7 +69,7 @@ namespace FadePlanet
         {
             // Handle interactions (e.g., combat, dialogue) based on object types
         }
-        public virtual void OnHit(float damage) { }
-
+        public virtual void OnHit(int damage) { }
+        public virtual void OnDeath() { }    
     }
 }
