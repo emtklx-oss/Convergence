@@ -68,6 +68,22 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="Graphics\desktop.ini" />
+    <None Include="Graphics\Enemies\desktop.ini" />
+    <None Include="Graphics\Enemies\Spritesheets\Characters\desktop.ini" />
+    <None Include="Graphics\Enemies\Spritesheets\Characters\Idles\desktop.ini" />
+    <None Include="Graphics\Enemies\Spritesheets\Characters\Walk\desktop.ini" />
+    <None Include="Graphics\Enemies\Spritesheets\desktop.ini" />
+    <None Include="Graphics\Items\desktop.ini" />
+    <None Include="Graphics\Items\Scrolls\desktop.ini" />
+    <None Include="Graphics\Items\Tokens\desktop.ini" />
+    <None Include="Graphics\Other Chars\desktop.ini" />
+    <None Include="Graphics\Player\desktop.ini" />
+    <None Include="Graphics\Player\Sword Animation\desktop.ini" />
+    <None Include="Graphics\Player\Tokens\desktop.ini" />
+    <None Include="Graphics\Player\Walking\desktop.ini" />
+    <None Include="Graphics\Realms\desktop.ini" />
+    <None Include="Graphics\UI\desktop.ini" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -80,6 +96,54 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Graphics\Enemies\Spritesheets\Characters\Idles\Cloud_Enemy_Idle.png" />
+    <Content Include="Graphics\Enemies\Spritesheets\Characters\Idles\Earth_Enemy_Idle.png" />
+    <Content Include="Graphics\Enemies\Spritesheets\Characters\Idles\Fire_Enemy_Idle.png" />
+    <Content Include="Graphics\Enemies\Spritesheets\Characters\Idles\Water_Enemy_Idle.png" />
+    <Content Include="Graphics\Enemies\Spritesheets\Characters\Walk\Air_Enemy_Walk.png" />
+    <Content Include="Graphics\Enemies\Spritesheets\Characters\Walk\Earth_Enemy_Walk.png" />
+    <Content Include="Graphics\Enemies\Spritesheets\Characters\Walk\Fire_Enemy_Walk.png" />
+    <Content Include="Graphics\Enemies\Spritesheets\Characters\Walk\Water_Enemy_Walk.png" />
+    <Content Include="Graphics\Items\Element sword.png" />
+    <Content Include="Graphics\Items\ElementSwordResting.png %28we don%27t have to use this, I just didn%27t know how to make it more  element-ie .png" />
+    <Content Include="Graphics\Items\HealthPotion.png" />
+    <Content Include="Graphics\Items\Scrolls\Air Scroll Close.png" />
+    <Content Include="Graphics\Items\Scrolls\Air Scroll.png" />
+    <Content Include="Graphics\Items\Scrolls\Earth Scroll Close.png" />
+    <Content Include="Graphics\Items\Scrolls\Earth Scroll.png" />
+    <Content Include="Graphics\Items\Scrolls\Fire Scroll Close.png" />
+    <Content Include="Graphics\Items\Scrolls\Fire Scroll.png" />
+    <Content Include="Graphics\Items\Scrolls\Water Scroll Close.png" />
+    <Content Include="Graphics\Items\Scrolls\Water Scroll.png" />
+    <Content Include="Graphics\Items\Tokens\AirToken.png" />
+    <Content Include="Graphics\Items\Tokens\EarthToken.png" />
+    <Content Include="Graphics\Items\Tokens\FireToken.png" />
+    <Content Include="Graphics\Items\Tokens\WaterToken.png" />
+    <Content Include="Graphics\Other Chars\WiseOldman.png" />
+    <Content Include="Graphics\Player\MainCharacter.png" />
+    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing1.png" />
+    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing2.png" />
+    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing3.png" />
+    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing4.png" />
+    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing5.png" />
+    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing6.png" />
+    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing7.png" />
+    <Content Include="Graphics\Player\Tokens\MainCharacter.ClaimingTokems-1.png.png" />
+    <Content Include="Graphics\Player\Tokens\MainCharacter.ClaimingTokems-2.png.png" />
+    <Content Include="Graphics\Player\Tokens\MainCharacter.ClaimingTokems-3.png.png" />
+    <Content Include="Graphics\Player\Walking\MainCharacter.FacingB.png" />
+    <Content Include="Graphics\Player\Walking\MainCharacter.FacingF.png" />
+    <Content Include="Graphics\Player\Walking\MainCharacter.FacingL.png" />
+    <Content Include="Graphics\Player\Walking\MainCharacter.FacingR.png" />
+    <Content Include="Graphics\Player\Walking\MainCharacter.Idle1.png" />
+    <Content Include="Graphics\Player\Walking\MainCharacter.Idle2.png" />
+    <Content Include="Graphics\UI\Currency.png" />
+    <Content Include="Graphics\UI\HealthBar.png" />
+    <Content Include="Graphics\UI\HealthGraphic.png" />
+    <Content Include="Graphics\UI\StaminaBar.png" />
+    <Content Include="Graphics\UI\StaminaGraphic.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
