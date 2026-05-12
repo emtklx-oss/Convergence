@@ -85,6 +85,11 @@ namespace FadePlanet
             if (e.KeyCode == Keys.D) moveRight = true;
         }
 
+        private void Convergence_Load(object sender, EventArgs e)
+        {
+
+        }
+
         private void Convergence_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.W) moveUp = false;

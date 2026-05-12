@@ -59,8 +59,12 @@
     <Compile Include="PlayerMovement.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scroll.cs" />
     <Compile Include="UI.cs" />
     <Compile Include="WorldObject.cs" />
+    <EmbeddedResource Include="Convergence.resx">
+      <DependentUpon>Convergence.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

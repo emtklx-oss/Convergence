@@ -41,7 +41,7 @@ namespace FadePlanet
         // the F means they are floats. float = decimals are allowed
         public PointF Position { get; set; }
         public SizeF ObjSize { get; set; }
-        public ObjectType Type { get; set; }
+        public ObjectType ObjectType { get; set; }
 
         // Returns the bounding box of the object.
         public RectangleF Bounds => new RectangleF(Position, ObjSize);
@@ -61,7 +61,7 @@ namespace FadePlanet
         {
             Position = pos;
             ObjSize = size;
-            Type = type;
+            ObjectType = type;
             GameManager.SpawnObject(this);
         }
 
