@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace FadePlanet
 {
-    public partial class Form1 : Form
+    public partial class Convergence : Form
     {
-        public Form1()
+        public Convergence()
         {
             InitializeComponent();
         }
