@@ -11,6 +11,8 @@ namespace FadePlanet
     {
         //Game controls the rooms
 
+        #region Object Management
+
         //List of Object types, with a dictionary containing all objects of the Key type
         private static readonly Dictionary<ObjectType, Dictionary<int, WorldObject>> RoomObjects = new Dictionary<ObjectType, Dictionary<int, WorldObject>>();
         public static IReadOnlyDictionary<ObjectType, Dictionary<int, WorldObject>> AllObjects => RoomObjects;
@@ -47,6 +49,12 @@ namespace FadePlanet
                     // Narrow-phase precise collision check
                     if (targetBounds.IntersectsWith(otherObj.Bounds))
                     {
+                        if (otherObj.Type == ObjectType.Friendly || otherObj.Type == ObjectType.Enemy)
+                        {
+                            // Handle interactions here (e.g., combat, dialogue)
+                            // For now, we just block movement
+                        }
+
                         return false;
                     }
                 }
@@ -77,6 +85,7 @@ namespace FadePlanet
                 categoryDict.Remove(obj.Id);
             }
         }
-       
+        #endregion 
+
     }
 }
