@@ -1,6 +1,6 @@
 ﻿namespace FadePlanet
 {
-    partial class Form1
+    partial class Convergence
     {
         /// <summary>
         /// Required designer variable.
