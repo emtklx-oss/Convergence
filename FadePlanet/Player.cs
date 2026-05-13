@@ -20,13 +20,22 @@ namespace FadePlanet
         #endregion
 
         #region Player Inventory
-        private const int hotbarLength = 4;
-        private WorldObject[] Inventory = new WorldObject[hotbarLength]; // Array to hold hotbar items
+        private int TokenCount { get; set; } = 0;
+        private int PotionCount { get; set; } = 0;
+        #endregion
+        #region Player Abilities 
+        private readonly List<Scroll> PlrScrolls = new List<Scroll>();
+        public ElementType ActiveScrollType { get; private set; }
         #endregion
 
         public Player(Point pos, Size size) : base(pos, size, ObjectType.Player) { }
-        
-        
+
+        public void SwitchActiveScroll()
+        {
+           
+        }
+
+        #region Damage/Death Functions
         public override void OnHit(int damage)
         {
             Health -= damage;
@@ -39,6 +48,8 @@ namespace FadePlanet
 
         // Handle player death (e.g., show game over screen, reset level, etc.)
         public override void OnDeath() { }
+        #endregion 
+
 
     }
 }

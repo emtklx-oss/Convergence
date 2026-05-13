@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace FadePlanet
 {
-    internal class Item : WorldObject
+    public class Item : WorldObject
     {
         private string Name { get; set; }
         private string Description { get; set; }
