@@ -15,7 +15,8 @@ namespace FadePlanet
     {
         // --- DECLARE VARIABLES ---
         private UI gameUI;
-        private PlayerMovement player;
+        private PlayerMovement playerMovement;
+        private Player player;
         private Token airToken;
 
         // UI Images
@@ -28,10 +29,6 @@ namespace FadePlanet
 
         // Input booleans
         private bool moveUp, moveDown, moveLeft, moveRight;
-
-        // Dummy variables for UI testing
-        private float testHealth = 100f;
-        private float testStamina = 100f;
 
         // Walks up from bin\Debug to the project root where Graphics folder lives
         private string GetProjectRoot()
@@ -52,7 +49,8 @@ namespace FadePlanet
 
             // --- INITIALIZE CLASSES ---
             gameUI = new UI();
-            player = new PlayerMovement(428f, 248f);
+            playerMovement = new PlayerMovement(428f, 248f);
+            player = new Player(new Point(428, 248), new Size(224, 224));
             airToken = new Token(new Point(600, 300), new Size(Token.DrawSize, Token.DrawSize));
 
             // --- LOAD IMAGES ---
@@ -65,7 +63,7 @@ namespace FadePlanet
                 staminaGraphic = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\StaminaGraphic.png"));
                 staminaBar = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\StaminaBar.png"));
 
-                player.LoadImages();
+                playerMovement.LoadImages();
             }
             catch (Exception ex)
             {
@@ -86,6 +84,12 @@ namespace FadePlanet
             if (e.KeyCode == Keys.S) moveDown = true;
             if (e.KeyCode == Keys.A) moveLeft = true;
             if (e.KeyCode == Keys.D) moveRight = true;
+
+            // Test damage
+            if (e.KeyCode == Keys.J) player.TestTakeDamage(10);
+
+            // Toggle hitbox visibility
+            if (e.KeyCode == Keys.H) player.ShowHitbox = !player.ShowHitbox;
         }
 
         private void Convergence_Load(object sender, EventArgs e) { }
@@ -101,40 +105,38 @@ namespace FadePlanet
         // --- GAME LOOP UPDATE ---
         private void GameLoop_Tick(object sender, EventArgs e)
         {
-            // 1. Input and player update
-            player.SetInput(moveUp, moveLeft, moveDown, moveRight);
-            player.Update();
+            // 1. Input and player movement update
+            playerMovement.SetInput(moveUp, moveLeft, moveDown, moveRight);
+            playerMovement.Update();
 
-            // 2. Token update and pickup check
+            // 2. Keep player WorldObject position in sync with PlayerMovement position
+            player.Position = new PointF(playerMovement.X, playerMovement.Y);
+
+            // 3. Token update and pickup check
             if (airToken != null)
             {
                 airToken.Update();
 
-                if (!player.IsPlayingPickup)
+                if (!playerMovement.IsPlayingPickup)
                 {
-                    float dx = (airToken.Position.X + Token.DrawSize / 2f) - (player.X + 112f);
-                    float dy = (airToken.Position.Y + Token.DrawSize / 2f) - (player.Y + 112f);
+                    float dx = (airToken.Position.X + Token.DrawSize / 2f) - (playerMovement.X + 112f);
+                    float dy = (airToken.Position.Y + Token.DrawSize / 2f) - (playerMovement.Y + 112f);
                     float distance = (float)Math.Sqrt(dx * dx + dy * dy);
 
                     if (distance <= Token.PickupRange)
                     {
                         GameManager.DespawnObject(airToken);
                         airToken = null;
-                        player.TriggerPickupAnimation();
+                        playerMovement.TriggerPickupAnimation();
                     }
                 }
             }
 
-            // 3. UI dummy drain
-            testHealth -= 0.2f;
-            testStamina -= 0.5f;
-            if (testHealth <= 0) testHealth = 100f;
-            if (testStamina <= 0) testStamina = 100f;
+            // 4. Sync UI with actual player health and stamina
+            gameUI.UpdateHealth(player.Health, player.MaxHealth);
+            gameUI.UpdateStamina(player.Stamina, player.MaxStamina);
 
-            gameUI.UpdateHealth(testHealth, 100f);
-            gameUI.UpdateStamina(testStamina, 100f);
-
-            // 4. Trigger redraw
+            // 5. Trigger redraw
             this.Invalidate();
         }
 
@@ -143,8 +145,11 @@ namespace FadePlanet
         {
             base.OnPaint(e);
 
-            player.Draw(e.Graphics);
+            playerMovement.Draw(e.Graphics);
             airToken?.Draw(e.Graphics);
+
+            // Draw hitbox on top of everything except the UI
+            player.DrawHitbox(e.Graphics);
 
             if (healthGraphic != null && healthBar != null && staminaGraphic != null && staminaBar != null)
             {
