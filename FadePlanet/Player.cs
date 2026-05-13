@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using static FadePlanet.Abilities;
 
 namespace FadePlanet
 {
@@ -23,8 +25,16 @@ namespace FadePlanet
         #endregion
 
         #region Player Abilities
-        private readonly List<Scroll> PlrScrolls = new List<Scroll>();
-        public ElementType ActiveScrollType { get; private set; }
+        public IElement CurrentElement { get; private set; } //Current scroll
+
+        // Dictionary to store our element instances
+        private Dictionary<Keys, IElement> _abilities = new Dictionary<Keys, IElement>
+        {
+            { Keys.D1, new WaterScroll() },
+            { Keys.D2, new FireScroll() },
+            { Keys.D3, new EarthScroll() },
+            { Keys.D4, new AirScroll() }
+        };
         #endregion
 
         #region Hitbox
@@ -54,7 +64,6 @@ namespace FadePlanet
 
         public Player(Point pos, Size size) : base(pos, size, ObjectType.Player) { }
 
-        public void SwitchActiveScroll() { }
 
         #region Hitbox Drawing
         public void DrawHitbox(Graphics g)
@@ -68,8 +77,53 @@ namespace FadePlanet
         }
         #endregion
 
+
+        #region Input
+        // Input booleans
+        private bool moveUp, moveDown, moveLeft, moveRight;
+        
+        public void HandleKeyDown(KeyEventArgs e)
+        {
+            
+        }
+        public void HandleKeyUp(KeyEventArgs e)
+        {
+            
+        }
+        public void HandleMouseClick(MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                CurrentElement?.PrimaryAttack(this.Position);
+            }
+            if (e.Button == MouseButtons.Right)
+            {
+                CurrentElement?.SecondaryAttack(this.Position);
+            }
+        }
+        public void HandleScrollSwitch(Keys key)
+        {
+            if (_abilities.ContainsKey(key))
+            {
+                if (CurrentElement == _abilities[key])
+                {
+                    //In case we want special feedback
+                    Console.WriteLine($"Already active");
+                }
+                else
+                {
+                    CurrentElement = _abilities[key];
+                    Console.WriteLine($"Switched to {CurrentElement.Type.ToString()}!");
+                }
+                    
+            }
+        }
+
+        #endregion
+
+
         #region Damage/Death Functions
-        public override void OnHit(int damage)
+        public void TakeDamage(int damage)
         {
             Health -= damage;
             if (Health <= 0)
@@ -79,17 +133,14 @@ namespace FadePlanet
             }
         }
 
-        public override void OnDeath()
+        public void OnDeath()
         {
             // Handle player death here later
         }
         #endregion
 
         #region Testing
-        public void TestTakeDamage(int amount)
-        {
-            OnHit(amount);
-        }
+      
         #endregion
     }
 }

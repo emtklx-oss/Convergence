@@ -20,7 +20,7 @@ namespace FadePlanet
         {
         }
 
-        public override void OnHit(int damage)
+        public void TakeDamage(int damage)
         {
             Health -= damage;
             if (Health <= 0)
@@ -30,7 +30,7 @@ namespace FadePlanet
             }
         }
 
-        public override void OnDeath()
+        public void OnDeath()
         {
             // Handle enemy death (e.g., remove from game, drop loot, etc.)
             // For now, we just remove it from the game

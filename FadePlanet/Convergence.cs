@@ -30,6 +30,7 @@ namespace FadePlanet
         // Input booleans
         private bool moveUp, moveDown, moveLeft, moveRight;
 
+
         // Walks up from bin\Debug to the project root where Graphics folder lives
         private string GetProjectRoot()
         {
@@ -85,22 +86,30 @@ namespace FadePlanet
             if (e.KeyCode == Keys.A) moveLeft = true;
             if (e.KeyCode == Keys.D) moveRight = true;
 
+            //Scrolls 
+            player.HandleScrollSwitch(e.KeyCode);
+
             // Test damage
-            if (e.KeyCode == Keys.J) player.TestTakeDamage(10);
+            if (e.KeyCode == Keys.J) player.TakeDamage(10);
 
             // Toggle hitbox visibility
             if (e.KeyCode == Keys.H) player.ShowHitbox = !player.ShowHitbox;
         }
-
-        private void Convergence_Load(object sender, EventArgs e) { }
-
         private void Convergence_KeyUp(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.W) moveUp = false;
             if (e.KeyCode == Keys.S) moveDown = false;
             if (e.KeyCode == Keys.A) moveLeft = false;
             if (e.KeyCode == Keys.D) moveRight = false;
+            
         }
+        private void Convergence_MouseDown(object sender, MouseEventArgs e)
+        {
+            player.HandleMouseClick(e);
+        }
+        private void Convergence_Load(object sender, EventArgs e) { }
+
+        
 
         // --- GAME LOOP UPDATE ---
         private void GameLoop_Tick(object sender, EventArgs e)
@@ -156,5 +165,7 @@ namespace FadePlanet
                 gameUI.DrawWinFormsUI(e.Graphics, healthGraphic, healthBar, staminaGraphic, staminaBar);
             }
         }
+
+        
     }
 }

@@ -38,6 +38,7 @@
             this.Name = "Convergence";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Convergence_Load);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Convergence_MouseDown);
             this.ResumeLayout(false);
 
         }

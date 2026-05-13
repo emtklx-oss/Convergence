@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 
 namespace FadePlanet
 {
-    public static class GameManager
+    
+
+        public static class GameManager
     {
         #region Object Management
 

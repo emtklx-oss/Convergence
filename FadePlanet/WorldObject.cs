@@ -64,7 +64,5 @@ namespace FadePlanet
         }
 
         public virtual void OnInteract(Player player) { }
-        public virtual void OnHit(int damage) { }
-        public virtual void OnDeath() { }
     }
 }
