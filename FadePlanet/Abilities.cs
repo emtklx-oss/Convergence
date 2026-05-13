@@ -14,7 +14,7 @@ namespace FadePlanet
             ElementType Type { get; }
             void PrimaryAttack(Player player);
             void SecondaryAttack(Player player);
-            void 
+             
         }
 
         public class FireScroll : IElement

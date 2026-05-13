@@ -25,9 +25,8 @@ namespace FadePlanet
         #endregion
 
         #region Player Abilities
-        public IElement CurrentElement { get; private set; } //Current scroll
+        public IElement CurrentElement { get; private set; }
 
-        // Dictionary to store our element instances
         private Dictionary<Keys, IElement> _abilities = new Dictionary<Keys, IElement>
         {
             { Keys.D1, new WaterScroll() },
@@ -40,17 +39,16 @@ namespace FadePlanet
         #region Hitbox
         // =====================================================================
         // HITBOX SETTINGS — Tweak these values to resize/reposition the hitbox
-        // HitboxWidth  — how wide the hitbox is in pixels
-        // HitboxHeight — how tall the hitbox is in pixels
+        // HitboxWidth   — how wide the hitbox is in pixels
+        // HitboxHeight  — how tall the hitbox is in pixels
         // HitboxOffsetX — how far right from the player's Position the hitbox starts
         // HitboxOffsetY — how far down from the player's Position the hitbox starts
         // =====================================================================
         private const float HitboxWidth = 80f;
         private const float HitboxHeight = 100f;
-        private const float HitboxOffsetX = 72f; // Centers the hitbox on the 224px wide sprite
-        private const float HitboxOffsetY = 110f; // Pushes it down to the body/feet area
+        private const float HitboxOffsetX = 72f;
+        private const float HitboxOffsetY = 110f;
 
-        // This is the hitbox other objects should check against for combat/interaction
         public RectangleF Hitbox => new RectangleF(
             Position.X + HitboxOffsetX,
             Position.Y + HitboxOffsetY,
@@ -58,12 +56,10 @@ namespace FadePlanet
             HitboxHeight
         );
 
-        // Toggle this to show/hide the hitbox visually
         public bool ShowHitbox { get; set; } = false;
         #endregion
 
         public Player(Point pos, Size size) : base(pos, size, ObjectType.Player) { }
-
 
         #region Hitbox Drawing
         public void DrawHitbox(Graphics g)
@@ -77,37 +73,29 @@ namespace FadePlanet
         }
         #endregion
 
-
         #region Input
-        // Input booleans
-        private bool moveUp, moveDown, moveLeft, moveRight;
-        
-        public void HandleKeyDown(KeyEventArgs e)
-        {
-            
-        }
-        public void HandleKeyUp(KeyEventArgs e)
-        {
-            
-        }
+        public void HandleKeyDown(KeyEventArgs e) { }
+
+        public void HandleKeyUp(KeyEventArgs e) { }
+
         public void HandleMouseClick(MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                CurrentElement?.PrimaryAttack(this.Position);
+                CurrentElement?.PrimaryAttack(this);
             }
             if (e.Button == MouseButtons.Right)
             {
-                CurrentElement?.SecondaryAttack(this.Position);
+                CurrentElement?.SecondaryAttack(this);
             }
         }
+
         public void HandleScrollSwitch(Keys key)
         {
             if (_abilities.ContainsKey(key))
             {
                 if (CurrentElement == _abilities[key])
                 {
-                    //In case we want special feedback
                     Console.WriteLine($"Already active");
                 }
                 else
@@ -115,12 +103,9 @@ namespace FadePlanet
                     CurrentElement = _abilities[key];
                     Console.WriteLine($"Switched to {CurrentElement.Type.ToString()}!");
                 }
-                    
             }
         }
-
         #endregion
-
 
         #region Damage/Death Functions
         public void TakeDamage(int damage)
@@ -140,7 +125,10 @@ namespace FadePlanet
         #endregion
 
         #region Testing
-      
+        public void TestTakeDamage(int amount)
+        {
+            TakeDamage(amount);
+        }
         #endregion
     }
 }
