@@ -32,7 +32,7 @@ namespace FadePlanet
 
         public void SwitchActiveScroll()
         {
-           
+            
         }
 
         #region Damage/Death Functions
