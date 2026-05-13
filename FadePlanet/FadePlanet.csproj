@@ -86,7 +86,6 @@
     <None Include="Graphics\Items\Tokens\desktop.ini" />
     <None Include="Graphics\Other Chars\desktop.ini" />
     <None Include="Graphics\Player\desktop.ini" />
-    <None Include="Graphics\Player\Sword Animation\desktop.ini" />
     <None Include="Graphics\Player\Tokens\desktop.ini" />
     <None Include="Graphics\Player\Walking\desktop.ini" />
     <None Include="Graphics\Realms\desktop.ini" />
@@ -132,13 +131,6 @@
     <EmbeddedResource Include="Graphics\Player\MainCharacter.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing1.png" />
-    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing2.png" />
-    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing3.png" />
-    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing4.png" />
-    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing5.png" />
-    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing6.png" />
-    <Content Include="Graphics\Player\Sword Animation\MainCharacter.Slashing7.png" />
     <Content Include="Graphics\Player\Tokens\ClaimingTokens1.png" />
     <Content Include="Graphics\Player\Tokens\ClaimingTokens2.png" />
     <Content Include="Graphics\Player\Tokens\ClaimingTokens3.png" />
