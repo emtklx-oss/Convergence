@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace FadePlanet
         // --- DECLARE VARIABLES ---
         private UI gameUI;
         private PlayerMovement player;
+        private Token airToken;
 
         // UI Images
         private Image healthGraphic;
@@ -31,47 +33,48 @@ namespace FadePlanet
         private float testHealth = 100f;
         private float testStamina = 100f;
 
+        // Walks up from bin\Debug to the project root where Graphics folder lives
+        private string GetProjectRoot()
+        {
+            string path = Application.StartupPath;
+            return Path.GetFullPath(Path.Combine(path, @"..\..\"));
+        }
+
         public Convergence()
         {
             InitializeComponent();
 
-            // Set window size
             this.ClientSize = new Size(1080, 720);
-
-            // CRITICAL FOR WINFORMS GAMES
             this.DoubleBuffered = true;
-
-            // Allows the form to capture key presses before other controls get them
             this.KeyPreview = true;
             this.KeyDown += Convergence_KeyDown;
             this.KeyUp += Convergence_KeyUp;
 
             // --- INITIALIZE CLASSES ---
             gameUI = new UI();
-
-            // Start player centered on screen (1080/2 - 112, 720/2 - 112)
             player = new PlayerMovement(428f, 248f);
+            airToken = new Token(new Point(600, 300), new Size(Token.DrawSize, Token.DrawSize));
 
             // --- LOAD IMAGES ---
-            string basePath = Application.StartupPath;
+            string basePath = GetProjectRoot();
 
             try
             {
-                healthGraphic = Image.FromFile(System.IO.Path.Combine(basePath, @"Graphics\UI\HealthGraphic.png"));
-                healthBar = Image.FromFile(System.IO.Path.Combine(basePath, @"Graphics\UI\HealthBar.png"));
-                staminaGraphic = Image.FromFile(System.IO.Path.Combine(basePath, @"Graphics\UI\StaminaGraphic.png"));
-                staminaBar = Image.FromFile(System.IO.Path.Combine(basePath, @"Graphics\UI\StaminaBar.png"));
+                healthGraphic = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\HealthGraphic.png"));
+                healthBar = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\HealthBar.png"));
+                staminaGraphic = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\StaminaGraphic.png"));
+                staminaBar = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\StaminaBar.png"));
 
                 player.LoadImages();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Image load failed. Make sure folders exist and 'Copy if newer' is set! Error: " + ex.Message);
+                MessageBox.Show("Image load failed. Make sure your Graphics folder is in the project root! Error: " + ex.Message);
             }
 
             // --- START GAME LOOP ---
             gameLoop = new System.Windows.Forms.Timer();
-            gameLoop.Interval = 16; // ~60 FPS
+            gameLoop.Interval = 16;
             gameLoop.Tick += GameLoop_Tick;
             gameLoop.Start();
         }
@@ -85,10 +88,7 @@ namespace FadePlanet
             if (e.KeyCode == Keys.D) moveRight = true;
         }
 
-        private void Convergence_Load(object sender, EventArgs e)
-        {
-
-        }
+        private void Convergence_Load(object sender, EventArgs e) { }
 
         private void Convergence_KeyUp(object sender, KeyEventArgs e)
         {
@@ -101,11 +101,31 @@ namespace FadePlanet
         // --- GAME LOOP UPDATE ---
         private void GameLoop_Tick(object sender, EventArgs e)
         {
-            // 1. Send inputs to the player and update their logic/animation
+            // 1. Input and player update
             player.SetInput(moveUp, moveLeft, moveDown, moveRight);
             player.Update();
 
-            // 2. UI Logic (Dummy drain effect)
+            // 2. Token update and pickup check
+            if (airToken != null)
+            {
+                airToken.Update();
+
+                if (!player.IsPlayingPickup)
+                {
+                    float dx = (airToken.Position.X + Token.DrawSize / 2f) - (player.X + 112f);
+                    float dy = (airToken.Position.Y + Token.DrawSize / 2f) - (player.Y + 112f);
+                    float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                    if (distance <= Token.PickupRange)
+                    {
+                        GameManager.DespawnObject(airToken);
+                        airToken = null;
+                        player.TriggerPickupAnimation();
+                    }
+                }
+            }
+
+            // 3. UI dummy drain
             testHealth -= 0.2f;
             testStamina -= 0.5f;
             if (testHealth <= 0) testHealth = 100f;
@@ -114,7 +134,7 @@ namespace FadePlanet
             gameUI.UpdateHealth(testHealth, 100f);
             gameUI.UpdateStamina(testStamina, 100f);
 
-            // 3. Trigger Redraw
+            // 4. Trigger redraw
             this.Invalidate();
         }
 
@@ -123,10 +143,9 @@ namespace FadePlanet
         {
             base.OnPaint(e);
 
-            // Draw the Player FIRST so they are underneath the UI
             player.Draw(e.Graphics);
+            airToken?.Draw(e.Graphics);
 
-            // Draw the UI LAST so it sits on top of everything
             if (healthGraphic != null && healthBar != null && staminaGraphic != null && staminaBar != null)
             {
                 gameUI.DrawWinFormsUI(e.Graphics, healthGraphic, healthBar, staminaGraphic, staminaBar);

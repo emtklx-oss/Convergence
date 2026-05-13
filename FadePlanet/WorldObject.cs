@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Drawing;
-using System.ComponentModel;
 
 namespace FadePlanet
 {
-    //Use ObjectType to quickly search for an object
     public enum ObjectType
     {
         None,
@@ -18,6 +17,7 @@ namespace FadePlanet
         Player,
         Item
     }
+
     public enum ObjectState
     {
         None,
@@ -26,6 +26,7 @@ namespace FadePlanet
         Attack,
         Death
     }
+
     public enum ElementType
     {
         Water,
@@ -36,24 +37,21 @@ namespace FadePlanet
 
     public class WorldObject
     {
-        public int Id { get; set; } //Used to look up object in dictionary 
+        public int Id { get; set; }
 
-        // the F means they are floats. float = decimals are allowed
         public PointF Position { get; set; }
         public SizeF ObjSize { get; set; }
-        public ObjectType ObjectType { get; set; }
 
-        // Returns the bounding box of the object.
+        // Renamed from ObjectType to Type to avoid conflict with the enum name
+        public ObjectType Type { get; set; }
+
         public RectangleF Bounds => new RectangleF(Position, ObjSize);
 
         #region Animations
-        // Store all spritesheets for this specific object
-        // Key: each state | Value: The Bitmap sheet */
         public Dictionary<ObjectState, Bitmap> Animations = new Dictionary<ObjectState, Bitmap>();
         public ObjectState CurrentState { get; set; }
         public int CurrentFrame { get; set; } = 0;
 
-        // Call this when drawing to get the right sheet
         public Bitmap GetCurrentSheet() => Animations[CurrentState];
         #endregion
 
@@ -61,15 +59,12 @@ namespace FadePlanet
         {
             Position = pos;
             ObjSize = size;
-            ObjectType = type;
+            Type = type;
             GameManager.SpawnObject(this);
         }
 
-        public virtual void OnInteract(Player player)
-        {
-            // Handle interactions (e.g., combat, dialogue) based on object types
-        }
+        public virtual void OnInteract(Player player) { }
         public virtual void OnHit(int damage) { }
-        public virtual void OnDeath() { }    
+        public virtual void OnDeath() { }
     }
 }
