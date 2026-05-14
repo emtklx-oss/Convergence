@@ -24,6 +24,7 @@ namespace FadePlanet
         private Image healthBar;
         private Image staminaGraphic;
         private Image staminaBar;
+        private Image inventorySlots;
 
         private System.Windows.Forms.Timer gameLoop;
 
@@ -41,7 +42,7 @@ namespace FadePlanet
         {
             InitializeComponent();
 
-            this.ClientSize = new Size(1080, 720);
+            this.ClientSize = new Size(1280, 720);
             this.DoubleBuffered = true;
             this.KeyPreview = true;
             this.KeyDown += Convergence_KeyDown;
@@ -50,9 +51,9 @@ namespace FadePlanet
 
             // --- INITIALIZE CLASSES ---
             gameUI = new UI();
-            playerMovement = new PlayerMovement(428f, 248f);
-            player = new Player(new Point(428, 248), new Size(224, 224));
-            airToken = new Token(new Point(600, 300), new Size(Token.DrawSize, Token.DrawSize));
+            playerMovement = new PlayerMovement(528f, 248f);
+            player = new Player(new Point(528, 248), new Size(224, 224));
+            airToken = new Token(new Point(700, 300), new Size(Token.DrawSize, Token.DrawSize));
 
             // --- LOAD IMAGES ---
             string basePath = GetProjectRoot();
@@ -63,8 +64,12 @@ namespace FadePlanet
                 healthBar = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\HealthBar.png"));
                 staminaGraphic = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\StaminaGraphic.png"));
                 staminaBar = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\StaminaBar.png"));
+                inventorySlots = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\Inventory Slots.png"));
 
                 playerMovement.LoadImages();
+
+                // Load scroll spritesheets into UI
+                gameUI.LoadScrollSheets(basePath);
             }
             catch (Exception ex)
             {
@@ -93,9 +98,16 @@ namespace FadePlanet
             if (e.KeyCode == Keys.J) player.TestTakeDamage(10);
 
             // Scroll switching (1-4)
+            // Store old element before switch attempt
+            var previousElement = player.CurrentElement;
             player.HandleScrollSwitch(e.KeyCode);
 
-            // Pass to player
+            // If a new pending element was set, tell the UI to start the animation
+            if (player.PendingElement != null && player.CurrentElement == previousElement)
+            {
+                gameUI.StartScrollSwitch(player.PendingElement.Type);
+            }
+
             player.HandleKeyDown(e);
         }
 
@@ -113,6 +125,11 @@ namespace FadePlanet
 
         private void Convergence_MouseClick(object sender, MouseEventArgs e)
         {
+            if (e.Button == MouseButtons.Left)
+            {
+                playerMovement.TriggerSlashAnimation();
+            }
+
             player.HandleMouseClick(e);
         }
 
@@ -126,12 +143,27 @@ namespace FadePlanet
             // 2. Keep player WorldObject position in sync with PlayerMovement position
             player.Position = new PointF(playerMovement.X, playerMovement.Y);
 
-            // 3. Token update and pickup check
+            // 3. Update scroll animation and check for animation milestones
+            var (closingDone, openingDone) = gameUI.UpdateScrollAnimation();
+
+            if (closingDone)
+            {
+                // Closing animation finished — confirm the switch in Player
+                player.ConfirmScrollSwitch();
+            }
+
+            if (openingDone)
+            {
+                // Opening animation finished — unlock switching
+                player.UnlockScrollSwitch();
+            }
+
+            // 4. Token update and pickup check
             if (airToken != null)
             {
                 airToken.Update();
 
-                if (!playerMovement.IsPlayingPickup)
+                if (!playerMovement.IsPlayingPickup && !playerMovement.IsPlayingSlash)
                 {
                     float dx = (airToken.Position.X + Token.DrawSize / 2f) - (playerMovement.X + 112f);
                     float dy = (airToken.Position.Y + Token.DrawSize / 2f) - (playerMovement.Y + 112f);
@@ -146,11 +178,11 @@ namespace FadePlanet
                 }
             }
 
-            // 4. Sync UI with actual player health and stamina
+            // 5. Sync UI with actual player health and stamina
             gameUI.UpdateHealth(player.Health, player.MaxHealth);
             gameUI.UpdateStamina(player.Stamina, player.MaxStamina);
 
-            // 5. Trigger redraw
+            // 6. Trigger redraw
             this.Invalidate();
         }
 
@@ -162,12 +194,20 @@ namespace FadePlanet
             playerMovement.Draw(e.Graphics);
             airToken?.Draw(e.Graphics);
 
-            // Draw hitbox on top of everything except the UI
             player.DrawHitbox(e.Graphics);
 
-            if (healthGraphic != null && healthBar != null && staminaGraphic != null && staminaBar != null)
+            if (healthGraphic != null && healthBar != null && staminaGraphic != null && staminaBar != null && inventorySlots != null)
             {
-                gameUI.DrawWinFormsUI(e.Graphics, healthGraphic, healthBar, staminaGraphic, staminaBar);
+                gameUI.DrawWinFormsUI(
+                    e.Graphics,
+                    healthGraphic,
+                    healthBar,
+                    staminaGraphic,
+                    staminaBar,
+                    inventorySlots,
+                    this.ClientSize.Width,
+                    this.ClientSize.Height
+                );
             }
         }
     }

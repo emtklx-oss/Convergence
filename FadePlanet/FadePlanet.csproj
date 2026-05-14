@@ -86,6 +86,7 @@
     <None Include="Graphics\Items\Tokens\desktop.ini" />
     <None Include="Graphics\Other Chars\desktop.ini" />
     <None Include="Graphics\Player\desktop.ini" />
+    <None Include="Graphics\Player\Sword Animation\desktop.ini" />
     <None Include="Graphics\Player\Tokens\desktop.ini" />
     <None Include="Graphics\Player\Walking\desktop.ini" />
     <None Include="Graphics\Realms\desktop.ini" />
@@ -115,22 +116,20 @@
     <Content Include="Graphics\Items\Element sword.png" />
     <Content Include="Graphics\Items\ElementSwordResting.png %28we don%27t have to use this, I just didn%27t know how to make it more  element-ie .png" />
     <Content Include="Graphics\Items\HealthPotion.png" />
-    <Content Include="Graphics\Items\Scrolls\Air Scroll Close.png" />
-    <Content Include="Graphics\Items\Scrolls\Air Scroll.png" />
-    <Content Include="Graphics\Items\Scrolls\Earth Scroll Close.png" />
-    <Content Include="Graphics\Items\Scrolls\Earth Scroll.png" />
-    <Content Include="Graphics\Items\Scrolls\Fire Scroll Close.png" />
-    <Content Include="Graphics\Items\Scrolls\Fire Scroll.png" />
-    <Content Include="Graphics\Items\Scrolls\Water Scroll Close.png" />
-    <Content Include="Graphics\Items\Scrolls\Water Scroll.png" />
+    <Content Include="Graphics\Items\Scrolls\AirScroll.png" />
+    <Content Include="Graphics\Items\Scrolls\EarthScroll.png" />
+    <Content Include="Graphics\Items\Scrolls\FireScroll.png" />
+    <Content Include="Graphics\Items\Scrolls\WaterScroll.png" />
     <Content Include="Graphics\Items\Tokens\AirToken.png" />
     <Content Include="Graphics\Items\Tokens\EarthToken.png" />
     <Content Include="Graphics\Items\Tokens\FireToken.png" />
     <Content Include="Graphics\Items\Tokens\WaterToken.png" />
     <Content Include="Graphics\Other Chars\WiseOldman.png" />
+    <Content Include="Graphics\UI\Inventory Slots.png" />
     <EmbeddedResource Include="Graphics\Player\MainCharacter.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <Content Include="Graphics\Player\Sword Animation\Slashing.png" />
     <Content Include="Graphics\Player\Tokens\ClaimingTokens1.png" />
     <Content Include="Graphics\Player\Tokens\ClaimingTokens2.png" />
     <Content Include="Graphics\Player\Tokens\ClaimingTokens3.png" />

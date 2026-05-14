@@ -26,6 +26,7 @@ namespace FadePlanet
 
         #region Player Abilities
         public IElement CurrentElement { get; private set; }
+        public IElement PendingElement { get; private set; } // The scroll we are switching TO
 
         private Dictionary<Keys, IElement> _abilities = new Dictionary<Keys, IElement>
         {
@@ -34,6 +35,9 @@ namespace FadePlanet
             { Keys.D3, new EarthScroll() },
             { Keys.D4, new AirScroll() }
         };
+
+        // Cooldown flag — locked while scroll animation is playing
+        public bool ScrollSwitchLocked { get; set; } = false;
         #endregion
 
         #region Hitbox
@@ -59,7 +63,11 @@ namespace FadePlanet
         public bool ShowHitbox { get; set; } = false;
         #endregion
 
-        public Player(Point pos, Size size) : base(pos, size, ObjectType.Player) { }
+        public Player(Point pos, Size size) : base(pos, size, ObjectType.Player)
+        {
+            // Set default scroll to AirScroll on game start
+            CurrentElement = _abilities[Keys.D4];
+        }
 
         #region Hitbox Drawing
         public void DrawHitbox(Graphics g)
@@ -92,6 +100,9 @@ namespace FadePlanet
 
         public void HandleScrollSwitch(Keys key)
         {
+            // Block switching if cooldown is active
+            if (ScrollSwitchLocked) return;
+
             if (_abilities.ContainsKey(key))
             {
                 if (CurrentElement == _abilities[key])
@@ -100,10 +111,26 @@ namespace FadePlanet
                 }
                 else
                 {
-                    CurrentElement = _abilities[key];
-                    Console.WriteLine($"Switched to {CurrentElement.Type.ToString()}!");
+                    // Store the scroll we want to switch to
+                    PendingElement = _abilities[key];
+                    ScrollSwitchLocked = true;
+                    Console.WriteLine($"Switching to {PendingElement.Type.ToString()}...");
                 }
             }
+        }
+
+        // Called by UI once the closing animation finishes
+        public void ConfirmScrollSwitch()
+        {
+            CurrentElement = PendingElement;
+            PendingElement = null;
+            Console.WriteLine($"Switched to {CurrentElement.Type.ToString()}!");
+        }
+
+        // Called by UI once the opening animation finishes
+        public void UnlockScrollSwitch()
+        {
+            ScrollSwitchLocked = false;
         }
         #endregion
 

@@ -17,7 +17,7 @@ namespace FadePlanet
         public const float PickupRange = 60f;
 
         // Drawn size (scaled down from 224x224)
-        public const int DrawSize = 48;
+        public const int DrawSize = 67;
 
         private Image tokenImage;
 
