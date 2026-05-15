@@ -41,44 +41,23 @@ namespace FadePlanet
         public bool ScrollSwitchLocked { get; set; } = false;
         #endregion
 
-        #region Hitbox
-        // =====================================================================
-        // HITBOX SETTINGS — Tweak these values to resize/reposition the hitbox
-        // HitboxWidth   — how wide the hitbox is in pixels
-        // HitboxHeight  — how tall the hitbox is in pixels
-        // HitboxOffsetX — how far right from the player's Position the hitbox starts
-        // HitboxOffsetY — how far down from the player's Position the hitbox starts
-        // =====================================================================
-        private const float HitboxWidth = 80f;
-        private const float HitboxHeight = 100f;
-        private const float HitboxOffsetX = 72f;
-        private const float HitboxOffsetY = 110f;
-
-        public RectangleF Hitbox => new RectangleF(
-            Position.X + HitboxOffsetX,
-            Position.Y + HitboxOffsetY,
-            HitboxWidth,
-            HitboxHeight
-        );
-
-        public bool ShowHitbox { get; set; } = false;
-        #endregion
-
         public Player(Point pos, Size size) : base(pos, size, ObjectType.Player)
         {
             // Set default scroll to AirScroll on game start
             CurrentElement = _abilities[Keys.D4];
         }
         #region Movement & Animation
-        public float Speed { get; set; } = 4.0f;
+        public int Speed { get; set; } = 4;
 
         // Graphics
         private Image facingB;
         private Image facingF;
         private Image facingR;
         private Image facingL;
-        private Image idle1;
-        private Image idle2;
+        private Image idleR1;
+        private Image idleR2;
+        private Image idleL1;
+        private Image idleL2;
         private Image currentImage;
 
         // Pickup animation frames
@@ -87,7 +66,8 @@ namespace FadePlanet
         private Image pickupFrame3;
 
         // Slash spritesheet
-        private Bitmap slashSheet;
+        private Bitmap slashSheetR;
+        private Bitmap slashSheetL;
 
         // Pickup animation state
         public bool IsPlayingPickup { get; private set; } = false;
@@ -137,16 +117,23 @@ namespace FadePlanet
                 facingF = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Walking\MainCharacter.FacingF.png"));
                 facingR = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Walking\MainCharacter.FacingR.png"));
                 facingL = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Walking\MainCharacter.FacingL.png"));
-                idle1 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Walking\MainCharacter.Idle1.png"));
-                idle2 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Walking\MainCharacter.Idle2.png"));
+
+                idleR1 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Walking\MainCharacter.Idle1.png"));
+                idleR2 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Walking\MainCharacter.Idle2.png"));
+                idleL1 = (Image)idleR1.Clone();
+                idleL1.RotateFlip(RotateFlipType.RotateNoneFlipX);
+                idleL2 = (Image)idleR2.Clone();
+                idleL2.RotateFlip(RotateFlipType.RotateNoneFlipX);
 
                 pickupFrame1 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Tokens\ClaimingTokens1.png"));
                 pickupFrame2 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Tokens\ClaimingTokens2.png"));
                 pickupFrame3 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Tokens\ClaimingTokens3.png"));
 
-                slashSheet = new Bitmap(Path.Combine(basePath, @"Graphics\Player\Sword Animation\Slashing.png"));
+                slashSheetR = new Bitmap(Path.Combine(basePath, @"Graphics\Player\Sword Animation\Slashing.png"));
+                slashSheetL = (Bitmap)slashSheetR.Clone();
+               
 
-                currentImage = idle1;
+                currentImage = idleR1;
             }
             catch (Exception ex)
             {
@@ -191,7 +178,7 @@ namespace FadePlanet
                     {
                         IsPlayingPickup = false;
                         pickupFrameIndex = 0;
-                        currentImage = idle1;
+                        currentImage = idleR1;
                     }
                 }
 
@@ -216,7 +203,7 @@ namespace FadePlanet
                     {
                         IsPlayingSlash = false;
                         slashFrameIndex = 0;
-                        currentImage = idle1;
+                        currentImage = idleR1;
                     }
                 }
 
@@ -243,7 +230,8 @@ namespace FadePlanet
                     frameCounter = 0;
                     isIdle1 = !isIdle1;
                 }
-                currentImage = isIdle1 ? idle1 : idle2;
+              
+                currentImage = isIdle1 ? idleR1 : idleR2;
             }
             else
             {
@@ -254,7 +242,7 @@ namespace FadePlanet
         
         public override void Draw(Graphics g)
         {
-            if (IsPlayingSlash && slashSheet != null)
+            if (IsPlayingSlash && slashSheetR != null)
             {
                 // Grab the correct frame from the spritesheet
                 Point framePos = SlashFramePositions[slashFrameIndex];
@@ -262,7 +250,7 @@ namespace FadePlanet
                 Rectangle srcRect = new Rectangle(framePos.X, framePos.Y, 224, 224);
                 RectangleF destRect = new RectangleF(Position.X, Position.Y, 224, 224);
 
-                g.DrawImage(slashSheet, destRect, srcRect, GraphicsUnit.Pixel);
+                g.DrawImage(slashSheetR, destRect, srcRect, GraphicsUnit.Pixel);
             }
             else if (currentImage != null)
             {

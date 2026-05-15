@@ -15,7 +15,8 @@ namespace FadePlanet
         Enemy,
         Friendly,
         Player,
-        Item
+        Item,
+        Projectile
     }
 
     public enum ObjectState
@@ -40,14 +41,34 @@ namespace FadePlanet
         public int Id { get; set; }
 
         public PointF Position { get; set; }
-        public SizeF ObjSize { get; set; }
+        public Size ObjSize { get; set; }
         private Image ObjImage { get; set; }
 
         // Renamed from ObjectType to Type to avoid conflict with the enum name
         public ObjectType Type { get; set; }
 
-        public RectangleF Bounds => new RectangleF(Position, ObjSize);
+        #region Hitbox
+        // =====================================================================
+        // HITBOX SETTINGS — Tweak these values to resize/reposition the hitbox
+        // HitboxWidth   — how wide the hitbox is in pixels
+        // HitboxHeight  — how tall the hitbox is in pixels
+        // HitboxOffsetX — how far right from the object's Position the hitbox starts
+        // HitboxOffsetY — how far down from the object's Position the hitbox starts
+        // =====================================================================
+        private const float HitboxWidth = 80f;
+        private const float HitboxHeight = 100f;
+        private const float HitboxOffsetX = 72f;
+        private const float HitboxOffsetY = 110f;
 
+        public RectangleF Hitbox => new RectangleF(
+            Position.X + HitboxOffsetX,
+            Position.Y + HitboxOffsetY,
+            HitboxWidth,
+            HitboxHeight
+        );
+
+        public bool ShowHitbox { get; set; } = false;
+        #endregion
         #region Animations
         public Dictionary<ObjectState, Bitmap> Animations = new Dictionary<ObjectState, Bitmap>();
         public ObjectState CurrentState { get; set; }

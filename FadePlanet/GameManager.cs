@@ -9,8 +9,13 @@ namespace FadePlanet
 {
     
 
-        public static class GameManager
+    public static class GameManager
     {
+        public static void LoadRoom()
+        {
+            Player = new Player(new Point(528, 248), new Size(224, 224));
+        }
+        public static Player Player {  get; private set; }
         #region Object Management
 
         private static readonly Dictionary<ObjectType, Dictionary<int, WorldObject>> RoomObjects = new Dictionary<ObjectType, Dictionary<int, WorldObject>>();
@@ -42,7 +47,7 @@ namespace FadePlanet
                         continue;
                     }
 
-                    if (targetBounds.IntersectsWith(otherObj.Bounds))
+                    if (targetBounds.IntersectsWith(otherObj.Hitbox))
                     {
                         if (otherObj.Type == ObjectType.Friendly || otherObj.Type == ObjectType.Enemy)
                         {
