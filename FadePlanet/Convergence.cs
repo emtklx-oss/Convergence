@@ -15,7 +15,6 @@ namespace FadePlanet
     {
         // --- DECLARE VARIABLES ---
         private UI gameUI;
-        private PlayerMovement playerMovement;
         private Player player;
         private Token airToken;
 
@@ -28,8 +27,6 @@ namespace FadePlanet
 
         private System.Windows.Forms.Timer gameLoop;
 
-        // Input booleans
-        private bool moveUp, moveDown, moveLeft, moveRight;
 
         // Walks up from bin\Debug to the project root where Graphics folder lives
         private string GetProjectRoot()
@@ -51,7 +48,6 @@ namespace FadePlanet
 
             // --- INITIALIZE CLASSES ---
             gameUI = new UI();
-            playerMovement = new PlayerMovement(528f, 248f);
             player = new Player(new Point(528, 248), new Size(224, 224));
             airToken = new Token(new Point(700, 300), new Size(Token.DrawSize, Token.DrawSize));
 
@@ -66,7 +62,7 @@ namespace FadePlanet
                 staminaBar = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\StaminaBar.png"));
                 inventorySlots = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\Inventory Slots.png"));
 
-                playerMovement.LoadImages();
+                player.LoadImages();
 
                 // Load scroll spritesheets into UI
                 gameUI.LoadScrollSheets(basePath);
@@ -86,16 +82,7 @@ namespace FadePlanet
         // --- INPUT HANDLING ---
         private void Convergence_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.W) moveUp = true;
-            if (e.KeyCode == Keys.S) moveDown = true;
-            if (e.KeyCode == Keys.A) moveLeft = true;
-            if (e.KeyCode == Keys.D) moveRight = true;
-
-            // Toggle hitbox visibility
-            if (e.KeyCode == Keys.H) player.ShowHitbox = !player.ShowHitbox;
-
-            // Test damage
-            if (e.KeyCode == Keys.J) player.TestTakeDamage(10);
+            player.HandleKeyDown(e);
 
             // Scroll switching (1-4)
             // Store old element before switch attempt
@@ -115,33 +102,18 @@ namespace FadePlanet
 
         private void Convergence_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.W) moveUp = false;
-            if (e.KeyCode == Keys.S) moveDown = false;
-            if (e.KeyCode == Keys.A) moveLeft = false;
-            if (e.KeyCode == Keys.D) moveRight = false;
-
             player.HandleKeyUp(e);
         }
 
         private void Convergence_MouseClick(object sender, MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
-            {
-                playerMovement.TriggerSlashAnimation();
-            }
-
             player.HandleMouseClick(e);
         }
 
         // --- GAME LOOP UPDATE ---
-        private void GameLoop_Tick(object sender, EventArgs e)
+        private async void GameLoop_Tick(object sender, EventArgs e)
         {
-            // 1. Input and player movement update
-            playerMovement.SetInput(moveUp, moveLeft, moveDown, moveRight);
-            playerMovement.Update();
-
-            // 2. Keep player WorldObject position in sync with PlayerMovement position
-            player.Position = new PointF(playerMovement.X, playerMovement.Y);
+            player.Update();
 
             // 3. Update scroll animation and check for animation milestones
             var (closingDone, openingDone) = gameUI.UpdateScrollAnimation();
@@ -163,17 +135,17 @@ namespace FadePlanet
             {
                 airToken.Update();
 
-                if (!playerMovement.IsPlayingPickup && !playerMovement.IsPlayingSlash)
+                if (!player.IsPlayingPickup && !player.IsPlayingSlash)
                 {
-                    float dx = (airToken.Position.X + Token.DrawSize / 2f) - (playerMovement.X + 112f);
-                    float dy = (airToken.Position.Y + Token.DrawSize / 2f) - (playerMovement.Y + 112f);
+                    float dx = (airToken.Position.X + Token.DrawSize / 2f) - (player.Position.X + 112f);
+                    float dy = (airToken.Position.Y + Token.DrawSize / 2f) - (player.Position.Y + 112f);
                     float distance = (float)Math.Sqrt(dx * dx + dy * dy);
 
                     if (distance <= Token.PickupRange)
                     {
                         GameManager.DespawnObject(airToken);
                         airToken = null;
-                        playerMovement.TriggerPickupAnimation();
+                        player.TriggerPickupAnimation();
                     }
                 }
             }
@@ -191,7 +163,7 @@ namespace FadePlanet
         {
             base.OnPaint(e);
 
-            playerMovement.Draw(e.Graphics);
+            player.Draw(e.Graphics);
             airToken?.Draw(e.Graphics);
 
             player.DrawHitbox(e.Graphics);

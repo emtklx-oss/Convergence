@@ -54,7 +54,7 @@ namespace FadePlanet
             floatOffset = (float)Math.Sin(floatTimer) * FloatAmplitude;
         }
 
-        public void Draw(Graphics g)
+        public override void Draw(Graphics g)
         {
             if (tokenImage == null) return;
 

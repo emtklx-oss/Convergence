@@ -41,6 +41,7 @@ namespace FadePlanet
 
         public PointF Position { get; set; }
         public SizeF ObjSize { get; set; }
+        private Image ObjImage { get; set; }
 
         // Renamed from ObjectType to Type to avoid conflict with the enum name
         public ObjectType Type { get; set; }
@@ -55,14 +56,22 @@ namespace FadePlanet
         public Bitmap GetCurrentSheet() => Animations[CurrentState];
         #endregion
 
-        public WorldObject(Point pos, Size size, ObjectType type = ObjectType.None)
+        public WorldObject(Point pos, Size size, ObjectType type = ObjectType.None, Image objImage = null)
         {
             Position = pos;
             ObjSize = size;
             Type = type;
             GameManager.SpawnObject(this);
+            ObjImage = objImage;
         }
-
+        public virtual void Draw(Graphics g)
+        {
+            if (ObjImage != null)
+            {
+                g.DrawImage(ObjImage, Position.X, Position.Y, ObjSize.Width, ObjSize.Height);
+            }
+        }
+        
         public virtual void OnInteract(Player player) { }
     }
 }
