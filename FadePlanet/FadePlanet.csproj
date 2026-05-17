@@ -77,10 +77,6 @@
     </Compile>
     <None Include="Graphics\desktop.ini" />
     <None Include="Graphics\Enemies\desktop.ini" />
-    <None Include="Graphics\Enemies\Spritesheets\Characters\desktop.ini" />
-    <None Include="Graphics\Enemies\Spritesheets\Characters\Idles\desktop.ini" />
-    <None Include="Graphics\Enemies\Spritesheets\Characters\Walk\desktop.ini" />
-    <None Include="Graphics\Enemies\Spritesheets\desktop.ini" />
     <None Include="Graphics\Items\desktop.ini" />
     <None Include="Graphics\Items\Scrolls\desktop.ini" />
     <None Include="Graphics\Items\Tokens\desktop.ini" />
@@ -105,14 +101,33 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Graphics\Enemies\Spritesheets\Characters\Idles\Cloud_Enemy_Idle.png" />
-    <Content Include="Graphics\Enemies\Spritesheets\Characters\Idles\Earth_Enemy_Idle.png" />
-    <Content Include="Graphics\Enemies\Spritesheets\Characters\Idles\Fire_Enemy_Idle.png" />
-    <Content Include="Graphics\Enemies\Spritesheets\Characters\Idles\Water_Enemy_Idle.png" />
-    <Content Include="Graphics\Enemies\Spritesheets\Characters\Walk\Air_Enemy_Walk.png" />
-    <Content Include="Graphics\Enemies\Spritesheets\Characters\Walk\Earth_Enemy_Walk.png" />
-    <Content Include="Graphics\Enemies\Spritesheets\Characters\Walk\Fire_Enemy_Walk.png" />
-    <Content Include="Graphics\Enemies\Spritesheets\Characters\Walk\Water_Enemy_Walk.png" />
+    <EmbeddedResource Include="Graphics\Enemies\Boss\BossStatue.MultiElement.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Graphics\Enemies\Idle\AirEnemyIdle.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Graphics\Enemies\Idle\EarthEnemyIdle.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Graphics\Enemies\Idle\FireEnemyIdle.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Graphics\Enemies\Idle\WaterEnemyIdle.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Graphics\Enemies\Walk\AirEnemyWalk.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Graphics\Enemies\Walk\EarthEnemyWalk.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Graphics\Enemies\Walk\FireEnemyWalk.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Graphics\Enemies\Walk\WaterEnemyWalk.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <Content Include="Graphics\Items\Element sword.png" />
     <EmbeddedResource Include="Graphics\Items\ElementSword.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -133,6 +148,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Graphics\Player\MainCharacter.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Graphics\Player\Healing\Healing.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Graphics\Player\Attacks\MainCharacter.RockBarrier.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <Content Include="Graphics\Player\Sword Animation\Slashing.png" />
@@ -172,6 +193,9 @@
     <EmbeddedResource Include="Graphics\UI\StaminaGraphic.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Graphics\Font\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 
 namespace FadePlanet
 {
-    
     internal class Projectile : WorldObject
     {
         ElementType ProjType { get; set; }
         private Color Col;
         private readonly float Speed = 4.0f;
-        public Projectile(Point pos, Size size, ElementType element, ObjectType type = ObjectType.None, Image objImage = null) : base(pos, size, type, objImage)
+
+        public Projectile(Point pos, Size size, ElementType element, ObjectType type = ObjectType.None) : base(pos, size, type)
         {
             ProjType = element;
+            SetColor();
         }
 
-        
         private void SetColor()
         {
             switch (ProjType)
@@ -37,16 +37,19 @@ namespace FadePlanet
                     break;
             }
         }
+
         public override void Draw(Graphics g)
         {
-            Pen pen = new Pen(Col);
-            RectangleF rect = new RectangleF(Position, ObjSize);
-            g.DrawEllipse(pen, rect);
+            using (Pen pen = new Pen(Col))
+            {
+                RectangleF rect = new RectangleF(Position, ObjSize);
+                g.DrawEllipse(pen, rect);
+            }
         }
 
         public void Update()
         {
-            
+            // Movement logic goes here
         }
     }
 }

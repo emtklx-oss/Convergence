@@ -12,6 +12,22 @@ namespace FadePlanet
 {
     public class Player : WorldObject
     {
+        // =====================================================================
+        // PLAYER KNOCKBACK SETTINGS
+        // =====================================================================
+        private const float PlayerKnockbackDistance = 60f;
+        private const float PlayerKnockbackSpeed = 5f;
+
+        // =====================================================================
+        // SWORD ATTACK HITBOX SETTINGS
+        // =====================================================================
+        private const float SwordHitboxWidth = 140f;
+        private const float SwordHitboxHeight = 100f;
+        private const float SwordHitboxOffsetX = 160f;
+        private const float SwordHitboxOffsetY = 80f;
+        private const int SwordDamage = 20;
+        // =====================================================================
+
         #region Player Stats
         public int Health { get; private set; } = 100;
         public int MaxHealth { get; private set; } = 100;
@@ -42,25 +58,47 @@ namespace FadePlanet
 
         #region Hitbox
         // =====================================================================
-        // HITBOX SETTINGS — Tweak these values to resize/reposition the hitbox
-        // HitboxWidth   — how wide the hitbox is in pixels
-        // HitboxHeight  — how tall the hitbox is in pixels
-        // HitboxOffsetX — how far right from the player's Position the hitbox starts
-        // HitboxOffsetY — how far down from the player's Position the hitbox starts
+        // HITBOX SETTINGS
         // =====================================================================
         private const float HitboxWidth = 80f;
         private const float HitboxHeight = 100f;
         private const float HitboxOffsetX = 72f;
         private const float HitboxOffsetY = 110f;
 
-        public RectangleF Hitbox => new RectangleF(
+        // Override the base WorldObject Hitbox with a more precise player hitbox
+        public override RectangleF Hitbox => new RectangleF(
             Position.X + HitboxOffsetX,
             Position.Y + HitboxOffsetY,
             HitboxWidth,
             HitboxHeight
         );
 
-        public bool ShowHitbox { get; set; } = false;
+        // Sword attack hitbox — wider rectangle in front of the player
+        public RectangleF SwordHitbox
+        {
+            get
+            {
+                float offsetX = isFacingLeft
+                    ? -(SwordHitboxOffsetX + SwordHitboxWidth)
+                    : SwordHitboxOffsetX;
+
+                return new RectangleF(
+                    Position.X + offsetX,
+                    Position.Y + SwordHitboxOffsetY,
+                    SwordHitboxWidth,
+                    SwordHitboxHeight
+                );
+            }
+        }
+
+        // Override the base ShowHitbox toggle
+        public override bool ShowHitbox { get; set; } = false;
+        #endregion
+
+        #region Knockback
+        private bool isKnockedBack = false;
+        private PointF knockbackDirection;
+        private float knockbackRemaining = 0f;
         #endregion
 
         public Player(Point pos, Size size) : base(pos, size, ObjectType.Player)
@@ -71,7 +109,6 @@ namespace FadePlanet
         #region Movement & Animation
         public int Speed { get; set; } = 4;
 
-        // Graphics
         private Image facingB;
         private Image facingF;
         private Image facingR;
@@ -82,55 +119,46 @@ namespace FadePlanet
         private Image idleL2;
         private Image currentImage;
 
-        // Pickup animation frames
         private Image pickupFrame1;
         private Image pickupFrame2;
         private Image pickupFrame3;
 
-        // Slash spritesheet
         private Bitmap slashSheetR;
         private Bitmap slashSheetL;
 
-        // Pickup animation state
         public bool IsPlayingPickup { get; private set; } = false;
         private int pickupFrameIndex = 0;
         private int pickupFrameTimer = 0;
         private const int PickupFrameDuration = 12;
 
-        // Slash animation state
         public bool IsPlayingSlash { get; private set; } = false;
         private int slashFrameIndex = 0;
         private int slashFrameTimer = 0;
-        private const int SlashFrameDuration = 3;
+        private const int SlashFrameDuration = 2;
         private const int SlashTotalFrames = 6;
 
-        // Tracks which direction the player was last facing
-        // false = right (default), true = left
+        private bool swordHitDealtThisSwing = false;
         private bool isFacingLeft = false;
 
-        // Slash frame positions on the spritesheet (2 columns, 3 rows, each frame 224x224)
         private static readonly Point[] SlashFramePositions = new Point[]
         {
-            new Point(0,   0),   // Frame 1
-            new Point(224, 0),   // Frame 2
-            new Point(0,   224), // Frame 3
-            new Point(224, 224), // Frame 4
-            new Point(0,   448), // Frame 5
-            new Point(224, 448)  // Frame 6
+            new Point(0,   0),
+            new Point(224, 0),
+            new Point(0,   224),
+            new Point(224, 224),
+            new Point(0,   448),
+            new Point(224, 448)
         };
 
-        // Animation tracking
         private int frameCounter = 0;
         private int idleAnimationSpeed = 30;
         private bool isIdle1 = true;
 
-        // Input tracking
         private bool isMovingUp, isMovingDown, isMovingLeft, isMovingRight;
 
         private string GetProjectRoot()
         {
-            string path = Application.StartupPath;
-            return Path.GetFullPath(Path.Combine(path, @"..\..\"));
+            return Path.GetFullPath(Path.Combine(Application.StartupPath, @"..\..\"));
         }
 
         public void LoadImages()
@@ -147,7 +175,6 @@ namespace FadePlanet
                 idleR1 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Walking\MainCharacter.Idle1.png"));
                 idleR2 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Walking\MainCharacter.Idle2.png"));
 
-                // Flip idle images for left-facing version
                 idleL1 = (Image)idleR1.Clone();
                 idleL1.RotateFlip(RotateFlipType.RotateNoneFlipX);
                 idleL2 = (Image)idleR2.Clone();
@@ -158,8 +185,6 @@ namespace FadePlanet
                 pickupFrame3 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Tokens\ClaimingTokens3.png"));
 
                 slashSheetR = new Bitmap(Path.Combine(basePath, @"Graphics\Player\Sword Animation\Slashing.png"));
-
-                // Flip the whole slash spritesheet for the left-facing version
                 slashSheetL = (Bitmap)slashSheetR.Clone();
                 slashSheetL.RotateFlip(RotateFlipType.RotateNoneFlipX);
 
@@ -185,15 +210,37 @@ namespace FadePlanet
             IsPlayingSlash = true;
             slashFrameIndex = 0;
             slashFrameTimer = 0;
+            swordHitDealtThisSwing = false;
         }
 
-        public void Update()
+        // Takes a plain list of WorldObjects so accessibility matches public
+        public void Update(List<WorldObject> enemyObjects)
         {
-            // Pickup animation — highest priority, freezes everything
+            // Handle knockback first — overrides everything
+            if (isKnockedBack)
+            {
+                if (knockbackRemaining > 0)
+                {
+                    float step = Math.Min(PlayerKnockbackSpeed, knockbackRemaining);
+                    Position = new PointF(
+                        Position.X + knockbackDirection.X * step,
+                        Position.Y + knockbackDirection.Y * step
+                    );
+                    knockbackRemaining -= step;
+                }
+                else
+                {
+                    isKnockedBack = false;
+                }
+
+                currentImage = isFacingLeft ? idleL1 : idleR1;
+                return;
+            }
+
+            // Pickup animation
             if (IsPlayingPickup)
             {
                 pickupFrameTimer++;
-
                 if (pickupFrameTimer >= PickupFrameDuration)
                 {
                     pickupFrameTimer = 0;
@@ -214,7 +261,7 @@ namespace FadePlanet
                 return;
             }
 
-            // Slash animation — freezes movement, draw handled in Draw()
+            // Slash animation
             if (IsPlayingSlash)
             {
                 slashFrameTimer++;
@@ -232,6 +279,25 @@ namespace FadePlanet
                     }
                 }
 
+                // Check sword hitbox against enemies once per swing
+                if (!swordHitDealtThisSwing && enemyObjects != null)
+                {
+                    foreach (WorldObject obj in enemyObjects)
+                    {
+                        Enemy enemy = obj as Enemy;
+                        if (enemy == null) continue;
+
+                        if (SwordHitbox.IntersectsWith(enemy.Bounds))
+                        {
+                            enemy.TakeDamage(SwordDamage, new PointF(
+                                Position.X + 112f,
+                                Position.Y + 112f
+                            ));
+                        }
+                    }
+                    swordHitDealtThisSwing = true;
+                }
+
                 return;
             }
 
@@ -240,32 +306,10 @@ namespace FadePlanet
             float x = Position.X;
             float y = Position.Y;
 
-            if (isMovingUp)
-            {
-                y -= Speed;
-                isMoving = true;
-                currentImage = facingB;
-            }
-            if (isMovingDown)
-            {
-                y += Speed;
-                isMoving = true;
-                currentImage = facingF;
-            }
-            if (isMovingLeft)
-            {
-                x -= Speed;
-                isMoving = true;
-                isFacingLeft = true;
-                currentImage = facingL;
-            }
-            if (isMovingRight)
-            {
-                x += Speed;
-                isMoving = true;
-                isFacingLeft = false;
-                currentImage = facingR;
-            }
+            if (isMovingUp) { y -= Speed; isMoving = true; currentImage = facingB; }
+            if (isMovingDown) { y += Speed; isMoving = true; currentImage = facingF; }
+            if (isMovingLeft) { x -= Speed; isMoving = true; isFacingLeft = true; currentImage = facingL; }
+            if (isMovingRight) { x += Speed; isMoving = true; isFacingLeft = false; currentImage = facingR; }
 
             Position = new PointF(x, y);
 
@@ -277,8 +321,6 @@ namespace FadePlanet
                     frameCounter = 0;
                     isIdle1 = !isIdle1;
                 }
-
-                // Use left or right idle based on last direction
                 currentImage = isFacingLeft
                     ? (isIdle1 ? idleL1 : idleL2)
                     : (isIdle1 ? idleR1 : idleR2);
@@ -289,23 +331,33 @@ namespace FadePlanet
             }
         }
 
+        public void ApplyKnockback(PointF sourcePosition)
+        {
+            float kDx = Position.X - sourcePosition.X;
+            float kDy = Position.Y - sourcePosition.Y;
+            float kLen = (float)Math.Sqrt(kDx * kDx + kDy * kDy);
+
+            knockbackDirection = kLen > 0
+                ? new PointF(kDx / kLen, kDy / kLen)
+                : new PointF(1f, 0f);
+
+            knockbackRemaining = PlayerKnockbackDistance;
+            isKnockedBack = true;
+        }
+
         public override void Draw(Graphics g)
         {
             if (IsPlayingSlash)
             {
-                // Pick the correct spritesheet based on facing direction
                 Bitmap activeSheet = isFacingLeft ? slashSheetL : slashSheetR;
 
                 if (activeSheet != null)
                 {
                     Point framePos = SlashFramePositions[slashFrameIndex];
 
-                    // When flipped, the frame columns are mirrored on the sheet
-                    // so we read them in reverse column order for the left sheet
                     Rectangle srcRect;
                     if (isFacingLeft)
                     {
-                        // Mirror the X position: column 0 becomes column 1 and vice versa
                         int mirroredX = framePos.X == 0 ? 224 : 0;
                         srcRect = new Rectangle(mirroredX, framePos.Y, 224, 224);
                     }
@@ -331,8 +383,12 @@ namespace FadePlanet
             if (!ShowHitbox) return;
 
             using (Pen hitboxPen = new Pen(Color.Red, 2f))
-            {
                 g.DrawRectangle(hitboxPen, Hitbox.X, Hitbox.Y, Hitbox.Width, Hitbox.Height);
+
+            if (IsPlayingSlash)
+            {
+                using (Pen swordPen = new Pen(Color.Blue, 2f))
+                    g.DrawRectangle(swordPen, SwordHitbox.X, SwordHitbox.Y, SwordHitbox.Width, SwordHitbox.Height);
             }
         }
         #endregion
@@ -377,14 +433,12 @@ namespace FadePlanet
             if (_abilities.ContainsKey(key))
             {
                 if (CurrentElement == _abilities[key])
-                {
-                    Console.WriteLine($"Already active");
-                }
+                    Console.WriteLine("Already active");
                 else
                 {
                     PendingElement = _abilities[key];
                     ScrollSwitchLocked = true;
-                    Console.WriteLine($"Switching to {PendingElement.Type.ToString()}...");
+                    Console.WriteLine($"Switching to {PendingElement.Type}...");
                 }
             }
         }
@@ -393,7 +447,7 @@ namespace FadePlanet
         {
             CurrentElement = PendingElement;
             PendingElement = null;
-            Console.WriteLine($"Switched to {CurrentElement.Type.ToString()}!");
+            Console.WriteLine($"Switched to {CurrentElement.Type}!");
         }
 
         public void UnlockScrollSwitch()
@@ -413,9 +467,13 @@ namespace FadePlanet
             }
         }
 
-        public void OnDeath()
+        public new void OnDeath() { }
+        #endregion
+
+        #region Testing
+        public void TestTakeDamage(int amount)
         {
-            // Handle player death here later
+            TakeDamage(amount);
         }
         #endregion
     }

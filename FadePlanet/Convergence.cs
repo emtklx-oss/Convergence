@@ -18,6 +18,8 @@ namespace FadePlanet
         private Player player;
         private Token airToken;
 
+        private List<Enemy> enemies = new List<Enemy>();
+
         // UI Images
         private Image healthGraphic;
         private Image healthBar;
@@ -29,8 +31,7 @@ namespace FadePlanet
 
         private string GetProjectRoot()
         {
-            string path = Application.StartupPath;
-            return Path.GetFullPath(Path.Combine(path, @"..\..\"));
+            return Path.GetFullPath(Path.Combine(Application.StartupPath, @"..\..\"));
         }
 
         public Convergence()
@@ -49,6 +50,12 @@ namespace FadePlanet
             player = new Player(new Point(528, 248), new Size(224, 224));
             airToken = new Token(new Point(700, 300), new Size(Token.DrawSize, Token.DrawSize));
 
+            // --- SPAWN TEST ENEMIES ---
+            SpawnEnemy(EnemyType.Air, new Point(200, 200));
+            SpawnEnemy(EnemyType.Water, new Point(900, 400));
+            SpawnEnemy(EnemyType.Earth, new Point(300, 500));
+            SpawnEnemy(EnemyType.Fire, new Point(1000, 200));
+
             // --- LOAD IMAGES ---
             string basePath = GetProjectRoot();
 
@@ -63,6 +70,9 @@ namespace FadePlanet
                 player.LoadImages();
                 gameUI.LoadScrollSheets(basePath);
                 gameUI.LoadInventoryIcons(basePath);
+
+                foreach (Enemy e in enemies)
+                    e.LoadImages();
             }
             catch (Exception ex)
             {
@@ -76,29 +86,29 @@ namespace FadePlanet
             gameLoop.Start();
         }
 
+        private void SpawnEnemy(EnemyType type, Point pos)
+        {
+            Enemy e = new Enemy(pos, new Size((int)(32 * 3.0f), (int)(32 * 3.0f)), type);
+            e.LoadImages();
+            enemies.Add(e);
+        }
+
         // --- INPUT HANDLING ---
         private void Convergence_KeyDown(object sender, KeyEventArgs e)
         {
-            // Scroll switching — only attempt if not locked
             if (!player.ScrollSwitchLocked)
             {
                 var previousElement = player.CurrentElement;
                 player.HandleScrollSwitch(e.KeyCode);
 
                 if (player.PendingElement != null && player.CurrentElement == previousElement)
-                {
                     gameUI.StartScrollSwitch(player.PendingElement.Type);
-                }
             }
 
-            // Highlight box slot selection
-            // Pass ScrollSwitchLocked so slots 1-4 are blocked during animation
             if (e.KeyCode == Keys.D1) gameUI.SetSelectedSlot(1, player.ScrollSwitchLocked);
             if (e.KeyCode == Keys.D2) gameUI.SetSelectedSlot(2, player.ScrollSwitchLocked);
             if (e.KeyCode == Keys.D3) gameUI.SetSelectedSlot(3, player.ScrollSwitchLocked);
             if (e.KeyCode == Keys.D4) gameUI.SetSelectedSlot(4, player.ScrollSwitchLocked);
-
-            // Slots 5 and 6 are never scroll slots so never blocked
             if (e.KeyCode == Keys.D5) gameUI.SetSelectedSlot(5, false);
             if (e.KeyCode == Keys.D6) gameUI.SetSelectedSlot(6, false);
 
@@ -120,16 +130,34 @@ namespace FadePlanet
         // --- GAME LOOP UPDATE ---
         private void GameLoop_Tick(object sender, EventArgs e)
         {
-            // 1. Update player
-            player.Update();
+            // 1. Build WorldObject list for sword hit detection
+            List<WorldObject> enemyObjects = new List<WorldObject>(enemies);
 
-            // 2. Scroll animation milestones
+            // 2. Update player
+            player.Update(enemyObjects);
+
+            // 3. Scroll animation milestones
             var (closingDone, openingDone) = gameUI.UpdateScrollAnimation();
 
             if (closingDone) player.ConfirmScrollSwitch();
-            if (openingDone) player.UnlockScrollSwitch();
+            if (openingDone)
+            {
+                player.UnlockScrollSwitch();
+                gameUI.FlushPendingSlot();
+            }
 
-            // 3. Token update and pickup check
+            // 4. Remove dead enemies then update living ones
+            enemies.RemoveAll(en =>
+            {
+                if (GameManager.AllObjects.TryGetValue(ObjectType.Enemy, out var dict))
+                    return !dict.ContainsKey(en.Id);
+                return true;
+            });
+
+            foreach (Enemy en in enemies)
+                en.Update(player);
+
+            // 5. Token update and pickup check
             if (airToken != null)
             {
                 airToken.Update();
@@ -149,11 +177,11 @@ namespace FadePlanet
                 }
             }
 
-            // 4. Sync UI health and stamina
+            // 6. Sync UI
             gameUI.UpdateHealth(player.Health, player.MaxHealth);
             gameUI.UpdateStamina(player.Stamina, player.MaxStamina);
 
-            // 5. Redraw
+            // 7. Redraw
             this.Invalidate();
         }
 
@@ -163,6 +191,10 @@ namespace FadePlanet
             base.OnPaint(e);
 
             airToken?.Draw(e.Graphics);
+
+            foreach (Enemy en in enemies)
+                en.Draw(e.Graphics);
+
             player.Draw(e.Graphics);
             player.DrawHitbox(e.Graphics);
 

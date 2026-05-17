@@ -49,7 +49,7 @@ namespace FadePlanet
         private const float Slot3X = 122f; private const float Slot3Y = 16f;  // Earth Scroll
         private const float Slot4X = 179f; private const float Slot4Y = 16f;  // Air Scroll
         private const float Slot5X = 238f; private const float Slot5Y = 16f;  // Sword
-        private const float Slot6X = 290f; private const float Slot6Y = 20f;  // Potion
+        private const float Slot6X = 290f; private const float Slot6Y = 16f;  // Potion
         // -----------------------------------------------------------------------
 
         private const int SlotCount = 6;
@@ -71,6 +71,10 @@ namespace FadePlanet
         // Which slot is currently selected (0-indexed)
         private int selectedSlot = 4; // Default = slot 5 (sword)
 
+        // Stores a scroll slot press that came in while locked
+        // -1 means no pending slot
+        private int pendingSlot = -1;
+
         // =========================
         //    SCROLL DISPLAY SETTINGS
         // =========================
@@ -79,7 +83,7 @@ namespace FadePlanet
         private const int ScrollScale = 4;
         private const int ScrollDrawSize = ScrollFrameSize * ScrollScale;
         private const int ScrollMargin = 16;
-        private const int ScrollFrameDuration = 6;
+        private const int ScrollFrameDuration = 2;
 
         // Scroll spritesheets
         private Bitmap airScrollSheet;
@@ -164,18 +168,30 @@ namespace FadePlanet
         //    INVENTORY SLOT SELECT
         // =========================
 
-        // scrollLocked = player.ScrollSwitchLocked
-        // isScrollSlot = true if this is slots 1-4 (scroll slots)
-        // If a scroll switch is in progress, scroll slots 1-4 are blocked
-        // Slots 5-6 (sword/potion) are always allowed to move the highlight
         public void SetSelectedSlot(int slot, bool scrollLocked)
         {
             bool isScrollSlot = slot >= 1 && slot <= 4;
 
-            // Block highlight movement on scroll slots while animation is playing
-            if (isScrollSlot && scrollLocked) return;
+            if (isScrollSlot && scrollLocked)
+            {
+                // Store the slot press so we can apply it the moment the cooldown ends
+                pendingSlot = slot - 1;
+                return;
+            }
 
             selectedSlot = slot - 1;
+            pendingSlot = -1; // Clear any pending since we moved freely
+        }
+
+        // Called by Convergence when the scroll animation finishes
+        // so the highlight catches up if a slot was pressed during the cooldown
+        public void FlushPendingSlot()
+        {
+            if (pendingSlot != -1)
+            {
+                selectedSlot = pendingSlot;
+                pendingSlot = -1;
+            }
         }
 
 
@@ -335,9 +351,6 @@ namespace FadePlanet
 
             // =========================
             //    INDIVIDUAL ICON POSITIONS
-            // Icons are positioned using the Slot1X/Y ... Slot6X/Y constants at the top.
-            // Each position is an offset from the inventory bar's top-left corner.
-            // The highlight box automatically centers itself on whichever icon is selected.
             // =========================
             float[] iconXs = new float[]
             {
@@ -379,8 +392,6 @@ namespace FadePlanet
 
             // =========================
             //    HIGHLIGHT BOX
-            // Centered directly on the selected icon position
-            // regardless of where you move the icon
             // =========================
             highlightTargetX = iconXs[selectedSlot] + (ItemIconSize / 2f) - (HighlightBoxWidth / 2f);
             highlightTargetY = iconYs[selectedSlot] + (ItemIconSize / 2f) - (HighlightBoxHeight / 2f);
