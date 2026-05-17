@@ -23,7 +23,7 @@ namespace FadePlanet
         public float CurrentStamina { get; private set; } = 100f;
 
         // =========================
-        //    INVENTORY SLOT SETTINGS
+        //    INVENTORY SETTINGS
         // =========================
         private const int InventoryScale = 2;
         private const int InventoryOriginalW = 208;
@@ -33,15 +33,53 @@ namespace FadePlanet
         private const int InventoryMargin = 16;
 
         // =========================
+        //    ITEM ICON SETTINGS
+        // =========================
+        private const float ItemIconScale = 1.8f;
+        private const int ItemIconSize = (int)(32 * ItemIconScale);
+
+        // -----------------------------------------------------------------------
+        // INDIVIDUAL ICON POSITIONS
+        // Each icon has its own X and Y offset from the inventory bar's top-left
+        // Positive X = further right, Positive Y = further down
+        // Adjust these to place each icon exactly where you want it
+        // -----------------------------------------------------------------------
+        private const float Slot1X = 10f; private const float Slot1Y = 16f;  // Water Scroll
+        private const float Slot2X = 67f; private const float Slot2Y = 16f;  // Fire Scroll
+        private const float Slot3X = 122f; private const float Slot3Y = 16f;  // Earth Scroll
+        private const float Slot4X = 179f; private const float Slot4Y = 16f;  // Air Scroll
+        private const float Slot5X = 238f; private const float Slot5Y = 16f;  // Sword
+        private const float Slot6X = 290f; private const float Slot6Y = 20f;  // Potion
+        // -----------------------------------------------------------------------
+
+        private const int SlotCount = 6;
+
+        // =========================
+        //    HIGHLIGHT BOX SETTINGS
+        // =========================
+        private const float HighlightBoxWidth = 50f;
+        private const float HighlightBoxHeight = 55f;
+        private const float HighlightSlideSpeed = 10f;
+        private const float HighlightThickness = 5f;
+
+        private float highlightCurrentX = 0f;
+        private float highlightCurrentY = 0f;
+        private float highlightTargetX = 0f;
+        private float highlightTargetY = 0f;
+        private bool highlightInitialized = false;
+
+        // Which slot is currently selected (0-indexed)
+        private int selectedSlot = 4; // Default = slot 5 (sword)
+
+        // =========================
         //    SCROLL DISPLAY SETTINGS
         // =========================
-        // Each frame is 32x32, 7 frames per sheet, displayed at 4x scale = 128x128
         private const int ScrollFrameSize = 32;
         private const int ScrollTotalFrames = 7;
-        private const int ScrollScale = 5;
-        private const int ScrollDrawSize = ScrollFrameSize * ScrollScale; // 128px
+        private const int ScrollScale = 4;
+        private const int ScrollDrawSize = ScrollFrameSize * ScrollScale;
         private const int ScrollMargin = 16;
-        private const int ScrollFrameDuration = 4; // Ticks per frame
+        private const int ScrollFrameDuration = 6;
 
         // Scroll spritesheets
         private Bitmap airScrollSheet;
@@ -49,20 +87,27 @@ namespace FadePlanet
         private Bitmap fireScrollSheet;
         private Bitmap waterScrollSheet;
 
+        // Inventory icons
+        private Bitmap waterScrollIcon;
+        private Bitmap fireScrollIcon;
+        private Bitmap earthScrollIcon;
+        private Bitmap airScrollIcon;
+        private Image swordIcon;
+        private Image potionIcon;
+
         // Scroll animation state
         private enum ScrollAnimState { Idle, Closing, Opening }
         private ScrollAnimState scrollState = ScrollAnimState.Idle;
         private int scrollFrameIndex = 0;
         private int scrollFrameTimer = 0;
 
-        // Which sheet to draw from
         private Bitmap currentScrollSheet;
         private Bitmap pendingScrollSheet;
 
 
 
         // =========================
-        //      LOAD SCROLL SHEETS
+        //      LOAD METHODS
         // =========================
 
         public void LoadScrollSheets(string projectRoot)
@@ -74,8 +119,12 @@ namespace FadePlanet
                 fireScrollSheet = new Bitmap(Path.Combine(projectRoot, @"Graphics\Items\Scrolls\FireScroll.png"));
                 waterScrollSheet = new Bitmap(Path.Combine(projectRoot, @"Graphics\Items\Scrolls\WaterScroll.png"));
 
-                // Default to AirScroll on game start, sitting on frame 1
                 currentScrollSheet = airScrollSheet;
+
+                waterScrollIcon = CropFrame(waterScrollSheet);
+                fireScrollIcon = CropFrame(fireScrollSheet);
+                earthScrollIcon = CropFrame(earthScrollSheet);
+                airScrollIcon = CropFrame(airScrollSheet);
             }
             catch (Exception ex)
             {
@@ -83,10 +132,60 @@ namespace FadePlanet
             }
         }
 
-        // Called when the player requests a scroll switch
+        public void LoadInventoryIcons(string projectRoot)
+        {
+            try
+            {
+                swordIcon = Image.FromFile(Path.Combine(projectRoot, @"Graphics\Items\ElementSword.png"));
+                potionIcon = Image.FromFile(Path.Combine(projectRoot, @"Graphics\Items\HealthPotion.png"));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Could not load inventory icons: " + ex.Message);
+            }
+        }
+
+        private Bitmap CropFrame(Bitmap sheet)
+        {
+            Bitmap frame = new Bitmap(ScrollFrameSize, ScrollFrameSize);
+            using (Graphics g = Graphics.FromImage(frame))
+            {
+                g.DrawImage(sheet,
+                    new Rectangle(0, 0, ScrollFrameSize, ScrollFrameSize),
+                    new Rectangle(0, 0, ScrollFrameSize, ScrollFrameSize),
+                    GraphicsUnit.Pixel);
+            }
+            return frame;
+        }
+
+
+
+        // =========================
+        //    INVENTORY SLOT SELECT
+        // =========================
+
+        // scrollLocked = player.ScrollSwitchLocked
+        // isScrollSlot = true if this is slots 1-4 (scroll slots)
+        // If a scroll switch is in progress, scroll slots 1-4 are blocked
+        // Slots 5-6 (sword/potion) are always allowed to move the highlight
+        public void SetSelectedSlot(int slot, bool scrollLocked)
+        {
+            bool isScrollSlot = slot >= 1 && slot <= 4;
+
+            // Block highlight movement on scroll slots while animation is playing
+            if (isScrollSlot && scrollLocked) return;
+
+            selectedSlot = slot - 1;
+        }
+
+
+
+        // =========================
+        //    SCROLL SWITCH
+        // =========================
+
         public void StartScrollSwitch(ElementType newElement)
         {
-            // Set the pending sheet based on what we are switching to
             switch (newElement)
             {
                 case ElementType.Air: pendingScrollSheet = airScrollSheet; break;
@@ -95,11 +194,12 @@ namespace FadePlanet
                 case ElementType.Water: pendingScrollSheet = waterScrollSheet; break;
             }
 
-            // Start closing animation from frame 1
             scrollState = ScrollAnimState.Closing;
             scrollFrameIndex = 0;
             scrollFrameTimer = 0;
         }
+
+
 
         // =========================
         //      UPDATE METHODS
@@ -117,8 +217,6 @@ namespace FadePlanet
             MaxStamina = maxStamina;
         }
 
-        // Returns true when closing animation finishes (time to confirm switch in Player)
-        // Returns false when opening animation finishes (time to unlock switch in Player)
         public (bool closingDone, bool openingDone) UpdateScrollAnimation()
         {
             bool closingDone = false;
@@ -135,10 +233,8 @@ namespace FadePlanet
                 if (scrollState == ScrollAnimState.Closing)
                 {
                     scrollFrameIndex++;
-
                     if (scrollFrameIndex >= ScrollTotalFrames)
                     {
-                        // Closing done — switch to pending sheet, start opening from last frame
                         currentScrollSheet = pendingScrollSheet;
                         scrollFrameIndex = ScrollTotalFrames - 1;
                         scrollState = ScrollAnimState.Opening;
@@ -148,10 +244,8 @@ namespace FadePlanet
                 else if (scrollState == ScrollAnimState.Opening)
                 {
                     scrollFrameIndex--;
-
                     if (scrollFrameIndex < 0)
                     {
-                        // Opening done — land on frame 1, go idle
                         scrollFrameIndex = 0;
                         scrollState = ScrollAnimState.Idle;
                         openingDone = true;
@@ -170,27 +264,11 @@ namespace FadePlanet
 
         public void DrawWinFormsUI(Graphics g, Image hGraphic, Image hBar, Image sGraphic, Image sBar, Image inventorySlots, int screenWidth, int screenHeight)
         {
-            // =========================
-            //      PIXEL ART SETTINGS
-            // =========================
-
             g.InterpolationMode = InterpolationMode.NearestNeighbor;
             g.PixelOffsetMode = PixelOffsetMode.Half;
             g.SmoothingMode = SmoothingMode.None;
 
-
-
-            // =========================
-            //        UI SCALE
-            // =========================
-
             int scale = 2;
-
-
-
-            // =========================
-            //     HEALTH/STAMINA %
-            // =========================
 
             float healthPercent = CurrentHealth / MaxHealth;
             float staminaPercent = CurrentStamina / MaxStamina;
@@ -200,7 +278,6 @@ namespace FadePlanet
             // =========================
             //      HEALTH BAR
             // =========================
-
             int healthX = 20;
             int healthY = 20;
 
@@ -225,7 +302,6 @@ namespace FadePlanet
             // =========================
             //      STAMINA BAR
             // =========================
-
             int staminaX = 20;
             int staminaY = 80;
 
@@ -248,9 +324,8 @@ namespace FadePlanet
 
 
             // =========================
-            //      INVENTORY SLOTS
+            //    INVENTORY BAR BASE
             // =========================
-
             int inventoryX = InventoryMargin;
             int inventoryY = screenHeight - InventoryDrawH - InventoryMargin;
 
@@ -259,16 +334,93 @@ namespace FadePlanet
 
 
             // =========================
+            //    INDIVIDUAL ICON POSITIONS
+            // Icons are positioned using the Slot1X/Y ... Slot6X/Y constants at the top.
+            // Each position is an offset from the inventory bar's top-left corner.
+            // The highlight box automatically centers itself on whichever icon is selected.
+            // =========================
+            float[] iconXs = new float[]
+            {
+                inventoryX + Slot1X,
+                inventoryX + Slot2X,
+                inventoryX + Slot3X,
+                inventoryX + Slot4X,
+                inventoryX + Slot5X,
+                inventoryX + Slot6X,
+            };
+
+            float[] iconYs = new float[]
+            {
+                inventoryY + Slot1Y,
+                inventoryY + Slot2Y,
+                inventoryY + Slot3Y,
+                inventoryY + Slot4Y,
+                inventoryY + Slot5Y,
+                inventoryY + Slot6Y,
+            };
+
+            Image[] icons = new Image[]
+            {
+                waterScrollIcon,
+                fireScrollIcon,
+                earthScrollIcon,
+                airScrollIcon,
+                swordIcon,
+                potionIcon,
+            };
+
+            for (int i = 0; i < SlotCount; i++)
+            {
+                if (icons[i] == null) continue;
+                g.DrawImage(icons[i], new RectangleF(iconXs[i], iconYs[i], ItemIconSize, ItemIconSize));
+            }
+
+
+
+            // =========================
+            //    HIGHLIGHT BOX
+            // Centered directly on the selected icon position
+            // regardless of where you move the icon
+            // =========================
+            highlightTargetX = iconXs[selectedSlot] + (ItemIconSize / 2f) - (HighlightBoxWidth / 2f);
+            highlightTargetY = iconYs[selectedSlot] + (ItemIconSize / 2f) - (HighlightBoxHeight / 2f);
+
+            if (!highlightInitialized)
+            {
+                highlightCurrentX = highlightTargetX;
+                highlightCurrentY = highlightTargetY;
+                highlightInitialized = true;
+            }
+
+            if (Math.Abs(highlightCurrentX - highlightTargetX) > 0.5f)
+            {
+                float dir = highlightTargetX > highlightCurrentX ? 1f : -1f;
+                highlightCurrentX += dir * HighlightSlideSpeed;
+                if (dir > 0 && highlightCurrentX > highlightTargetX) highlightCurrentX = highlightTargetX;
+                if (dir < 0 && highlightCurrentX < highlightTargetX) highlightCurrentX = highlightTargetX;
+            }
+            else
+            {
+                highlightCurrentX = highlightTargetX;
+            }
+
+            highlightCurrentY = highlightTargetY;
+
+            using (Pen highlightPen = new Pen(Color.Yellow, HighlightThickness))
+            {
+                g.DrawRectangle(highlightPen, highlightCurrentX, highlightCurrentY, HighlightBoxWidth, HighlightBoxHeight);
+            }
+
+
+
+            // =========================
             //      ACTIVE SCROLL
             // =========================
-
             if (currentScrollSheet != null)
             {
-                // Position bottom right
                 int scrollX = screenWidth - ScrollDrawSize - ScrollMargin;
                 int scrollY = screenHeight - ScrollDrawSize - ScrollMargin;
 
-                // Grab the correct frame from the spritesheet
                 Rectangle srcRect = new Rectangle(scrollFrameIndex * ScrollFrameSize, 0, ScrollFrameSize, ScrollFrameSize);
                 Rectangle destRect = new Rectangle(scrollX, scrollY, ScrollDrawSize, ScrollDrawSize);
 

@@ -114,8 +114,12 @@
     <Content Include="Graphics\Enemies\Spritesheets\Characters\Walk\Fire_Enemy_Walk.png" />
     <Content Include="Graphics\Enemies\Spritesheets\Characters\Walk\Water_Enemy_Walk.png" />
     <Content Include="Graphics\Items\Element sword.png" />
-    <Content Include="Graphics\Items\ElementSwordResting.png %28we don%27t have to use this, I just didn%27t know how to make it more  element-ie .png" />
-    <Content Include="Graphics\Items\HealthPotion.png" />
+    <EmbeddedResource Include="Graphics\Items\ElementSword.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Graphics\Items\HealthPotion.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <Content Include="Graphics\Items\Scrolls\AirScroll.png" />
     <Content Include="Graphics\Items\Scrolls\EarthScroll.png" />
     <Content Include="Graphics\Items\Scrolls\FireScroll.png" />
@@ -125,7 +129,9 @@
     <Content Include="Graphics\Items\Tokens\FireToken.png" />
     <Content Include="Graphics\Items\Tokens\WaterToken.png" />
     <Content Include="Graphics\Other Chars\WiseOldman.png" />
-    <Content Include="Graphics\UI\Inventory Slots.png" />
+    <EmbeddedResource Include="Graphics\UI\Inventory Slots.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Graphics\Player\MainCharacter.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>

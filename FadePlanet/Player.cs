@@ -27,7 +27,7 @@ namespace FadePlanet
 
         #region Player Abilities
         public IElement CurrentElement { get; private set; }
-        public IElement PendingElement { get; private set; } // The scroll we are switching TO
+        public IElement PendingElement { get; private set; }
 
         private Dictionary<Keys, IElement> _abilities = new Dictionary<Keys, IElement>
         {
@@ -37,15 +37,37 @@ namespace FadePlanet
             { Keys.D4, new AirScroll() }
         };
 
-        // Cooldown flag — locked while scroll animation is playing
         public bool ScrollSwitchLocked { get; set; } = false;
+        #endregion
+
+        #region Hitbox
+        // =====================================================================
+        // HITBOX SETTINGS — Tweak these values to resize/reposition the hitbox
+        // HitboxWidth   — how wide the hitbox is in pixels
+        // HitboxHeight  — how tall the hitbox is in pixels
+        // HitboxOffsetX — how far right from the player's Position the hitbox starts
+        // HitboxOffsetY — how far down from the player's Position the hitbox starts
+        // =====================================================================
+        private const float HitboxWidth = 80f;
+        private const float HitboxHeight = 100f;
+        private const float HitboxOffsetX = 72f;
+        private const float HitboxOffsetY = 110f;
+
+        public RectangleF Hitbox => new RectangleF(
+            Position.X + HitboxOffsetX,
+            Position.Y + HitboxOffsetY,
+            HitboxWidth,
+            HitboxHeight
+        );
+
+        public bool ShowHitbox { get; set; } = false;
         #endregion
 
         public Player(Point pos, Size size) : base(pos, size, ObjectType.Player)
         {
-            // Set default scroll to AirScroll on game start
             CurrentElement = _abilities[Keys.D4];
         }
+
         #region Movement & Animation
         public int Speed { get; set; } = 4;
 
@@ -79,8 +101,12 @@ namespace FadePlanet
         public bool IsPlayingSlash { get; private set; } = false;
         private int slashFrameIndex = 0;
         private int slashFrameTimer = 0;
-        private const int SlashFrameDuration = 2; // Ticks per frame — lower = faster
+        private const int SlashFrameDuration = 3;
         private const int SlashTotalFrames = 6;
+
+        // Tracks which direction the player was last facing
+        // false = right (default), true = left
+        private bool isFacingLeft = false;
 
         // Slash frame positions on the spritesheet (2 columns, 3 rows, each frame 224x224)
         private static readonly Point[] SlashFramePositions = new Point[]
@@ -100,7 +126,7 @@ namespace FadePlanet
 
         // Input tracking
         private bool isMovingUp, isMovingDown, isMovingLeft, isMovingRight;
-        // Walks up from bin\Debug to the project root where Graphics folder lives
+
         private string GetProjectRoot()
         {
             string path = Application.StartupPath;
@@ -120,6 +146,8 @@ namespace FadePlanet
 
                 idleR1 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Walking\MainCharacter.Idle1.png"));
                 idleR2 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Walking\MainCharacter.Idle2.png"));
+
+                // Flip idle images for left-facing version
                 idleL1 = (Image)idleR1.Clone();
                 idleL1.RotateFlip(RotateFlipType.RotateNoneFlipX);
                 idleL2 = (Image)idleR2.Clone();
@@ -130,8 +158,10 @@ namespace FadePlanet
                 pickupFrame3 = Image.FromFile(Path.Combine(basePath, @"Graphics\Player\Tokens\ClaimingTokens3.png"));
 
                 slashSheetR = new Bitmap(Path.Combine(basePath, @"Graphics\Player\Sword Animation\Slashing.png"));
+
+                // Flip the whole slash spritesheet for the left-facing version
                 slashSheetL = (Bitmap)slashSheetR.Clone();
-               
+                slashSheetL.RotateFlip(RotateFlipType.RotateNoneFlipX);
 
                 currentImage = idleR1;
             }
@@ -140,10 +170,6 @@ namespace FadePlanet
                 MessageBox.Show("Could not load player images! Error: " + ex.Message);
             }
         }
-
-        // --- 3. MOVEMENT & LOGIC ---
-
-      
 
         public void TriggerPickupAnimation()
         {
@@ -154,7 +180,6 @@ namespace FadePlanet
 
         public void TriggerSlashAnimation()
         {
-            // Don't interrupt a slash already playing
             if (IsPlayingSlash) return;
 
             IsPlayingSlash = true;
@@ -164,7 +189,7 @@ namespace FadePlanet
 
         public void Update()
         {
-            // Pickup animation takes highest priority — freezes everything
+            // Pickup animation — highest priority, freezes everything
             if (IsPlayingPickup)
             {
                 pickupFrameTimer++;
@@ -178,7 +203,7 @@ namespace FadePlanet
                     {
                         IsPlayingPickup = false;
                         pickupFrameIndex = 0;
-                        currentImage = idleR1;
+                        currentImage = isFacingLeft ? idleL1 : idleR1;
                     }
                 }
 
@@ -189,7 +214,7 @@ namespace FadePlanet
                 return;
             }
 
-            // Slash animation — freezes movement but is handled in Draw()
+            // Slash animation — freezes movement, draw handled in Draw()
             if (IsPlayingSlash)
             {
                 slashFrameTimer++;
@@ -203,11 +228,11 @@ namespace FadePlanet
                     {
                         IsPlayingSlash = false;
                         slashFrameIndex = 0;
-                        currentImage = idleR1;
+                        currentImage = isFacingLeft ? idleL1 : idleR1;
                     }
                 }
 
-                return; // Skip movement
+                return;
             }
 
             // Normal movement
@@ -215,10 +240,32 @@ namespace FadePlanet
             float x = Position.X;
             float y = Position.Y;
 
-            if (isMovingUp) { y -= Speed; isMoving = true; currentImage = facingB; }
-            if (isMovingDown) { y += Speed; isMoving = true; currentImage = facingF; }
-            if (isMovingLeft) { x -= Speed; isMoving = true; currentImage = facingL; }
-            if (isMovingRight) { x += Speed; isMoving = true; currentImage = facingR; }
+            if (isMovingUp)
+            {
+                y -= Speed;
+                isMoving = true;
+                currentImage = facingB;
+            }
+            if (isMovingDown)
+            {
+                y += Speed;
+                isMoving = true;
+                currentImage = facingF;
+            }
+            if (isMovingLeft)
+            {
+                x -= Speed;
+                isMoving = true;
+                isFacingLeft = true;
+                currentImage = facingL;
+            }
+            if (isMovingRight)
+            {
+                x += Speed;
+                isMoving = true;
+                isFacingLeft = false;
+                currentImage = facingR;
+            }
 
             Position = new PointF(x, y);
 
@@ -230,8 +277,11 @@ namespace FadePlanet
                     frameCounter = 0;
                     isIdle1 = !isIdle1;
                 }
-              
-                currentImage = isIdle1 ? idleR1 : idleR2;
+
+                // Use left or right idle based on last direction
+                currentImage = isFacingLeft
+                    ? (isIdle1 ? idleL1 : idleL2)
+                    : (isIdle1 ? idleR1 : idleR2);
             }
             else
             {
@@ -239,18 +289,34 @@ namespace FadePlanet
             }
         }
 
-        
         public override void Draw(Graphics g)
         {
-            if (IsPlayingSlash && slashSheetR != null)
+            if (IsPlayingSlash)
             {
-                // Grab the correct frame from the spritesheet
-                Point framePos = SlashFramePositions[slashFrameIndex];
+                // Pick the correct spritesheet based on facing direction
+                Bitmap activeSheet = isFacingLeft ? slashSheetL : slashSheetR;
 
-                Rectangle srcRect = new Rectangle(framePos.X, framePos.Y, 224, 224);
-                RectangleF destRect = new RectangleF(Position.X, Position.Y, 224, 224);
+                if (activeSheet != null)
+                {
+                    Point framePos = SlashFramePositions[slashFrameIndex];
 
-                g.DrawImage(slashSheetR, destRect, srcRect, GraphicsUnit.Pixel);
+                    // When flipped, the frame columns are mirrored on the sheet
+                    // so we read them in reverse column order for the left sheet
+                    Rectangle srcRect;
+                    if (isFacingLeft)
+                    {
+                        // Mirror the X position: column 0 becomes column 1 and vice versa
+                        int mirroredX = framePos.X == 0 ? 224 : 0;
+                        srcRect = new Rectangle(mirroredX, framePos.Y, 224, 224);
+                    }
+                    else
+                    {
+                        srcRect = new Rectangle(framePos.X, framePos.Y, 224, 224);
+                    }
+
+                    RectangleF destRect = new RectangleF(Position.X, Position.Y, 224, 224);
+                    g.DrawImage(activeSheet, destRect, srcRect, GraphicsUnit.Pixel);
+                }
             }
             else if (currentImage != null)
             {
@@ -258,6 +324,7 @@ namespace FadePlanet
             }
         }
         #endregion
+
         #region Hitbox Drawing
         public void DrawHitbox(Graphics g)
         {
@@ -271,17 +338,14 @@ namespace FadePlanet
         #endregion
 
         #region Input
-        public void HandleKeyDown(KeyEventArgs e) 
+        public void HandleKeyDown(KeyEventArgs e)
         {
             if (e.KeyCode == Keys.W) isMovingUp = true;
             if (e.KeyCode == Keys.S) isMovingDown = true;
             if (e.KeyCode == Keys.A) isMovingLeft = true;
             if (e.KeyCode == Keys.D) isMovingRight = true;
 
-            // Toggle hitbox visibility
             if (e.KeyCode == Keys.H) ShowHitbox = !ShowHitbox;
-
-            // Test damage
             if (e.KeyCode == Keys.J) TakeDamage(10);
         }
 
@@ -308,7 +372,6 @@ namespace FadePlanet
 
         public void HandleScrollSwitch(Keys key)
         {
-            // Block switching if cooldown is active
             if (ScrollSwitchLocked) return;
 
             if (_abilities.ContainsKey(key))
@@ -319,7 +382,6 @@ namespace FadePlanet
                 }
                 else
                 {
-                    // Store the scroll we want to switch to
                     PendingElement = _abilities[key];
                     ScrollSwitchLocked = true;
                     Console.WriteLine($"Switching to {PendingElement.Type.ToString()}...");
@@ -327,7 +389,6 @@ namespace FadePlanet
             }
         }
 
-        // Called by UI once the closing animation finishes
         public void ConfirmScrollSwitch()
         {
             CurrentElement = PendingElement;
@@ -335,7 +396,6 @@ namespace FadePlanet
             Console.WriteLine($"Switched to {CurrentElement.Type.ToString()}!");
         }
 
-        // Called by UI once the opening animation finishes
         public void UnlockScrollSwitch()
         {
             ScrollSwitchLocked = false;
@@ -358,6 +418,5 @@ namespace FadePlanet
             // Handle player death here later
         }
         #endregion
-
     }
 }
