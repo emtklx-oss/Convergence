@@ -330,7 +330,7 @@ namespace FadePlanet
 
             IsPlayingSlash = true;
             slashFrameIndex = 0;
-            slashFrameTimer = 0;
+            slashFrameTimer = 0;aa
             swordHitDealtThisSwing = false;
         }
         public void TriggerHealAnimation()
