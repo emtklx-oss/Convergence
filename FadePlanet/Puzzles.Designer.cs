@@ -1,6 +1,6 @@
 ﻿namespace FadePlanet
 {
-    partial class Convergence
+    partial class Puzzles
     {
         /// <summary>
         /// Required designer variable.
@@ -28,23 +28,12 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.SuspendLayout();
-            // 
-            // Convergence
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.components = new System.ComponentModel.Container();
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.Name = "Convergence";
-            this.Text = "Convergence";
-            this.Load += new System.EventHandler(this.Convergence_Load);
-            this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Convergence_MouseClick);
-            this.ResumeLayout(false);
-
+            this.Text = "Puzzles";
         }
 
         #endregion
     }
 }
-
