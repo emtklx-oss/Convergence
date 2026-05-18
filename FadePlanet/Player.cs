@@ -29,6 +29,13 @@ namespace FadePlanet
         private const float RockBarrierKnockbackDistance = 130f;
         private const float BarrierHitboxWidth = 180f;
         private const int HealAmount = 40;
+
+        // =====================================================================
+        // STAMINA SETTINGS — tweak these to balance earth attack usage
+        // =====================================================================
+        private const float RockBarrierStaminaCost = 25f;
+        private const float StaminaRegenPerSecond = 10f;
+        private const float GameLoopDeltaSeconds = 0.016f; // matches 16ms timer in Convergence
         // =====================================================================
 
         public const int InventorySlotEarthScroll = 2;
@@ -39,8 +46,10 @@ namespace FadePlanet
         public int Health { get; private set; } = 100;
         public int MaxHealth { get; private set; } = 100;
 
-        public int Stamina { get; private set; } = 100;
-        public int MaxStamina { get; private set; } = 100;
+        public float Stamina { get; private set; } = 100f;
+        public float MaxStamina { get; private set; } = 100f;
+
+        public bool CanUseRockBarrier => Stamina >= RockBarrierStaminaCost;
         #endregion
 
         #region Player Inventory
@@ -299,8 +308,9 @@ namespace FadePlanet
 
         public void TriggerRockBarrierAnimation()
         {
-            if (IsActionLocked) return;
+            if (IsActionLocked || !CanUseRockBarrier) return;
 
+            Stamina -= RockBarrierStaminaCost;
             IsPlayingRockBarrier = true;
             rockBarrierFrameIndex = 0;
             rockBarrierFrameTimer = 0;
@@ -309,6 +319,8 @@ namespace FadePlanet
         // Takes a plain list of WorldObjects so accessibility matches public
         public void Update(List<WorldObject> enemyObjects)
         {
+            RegenerateStamina();
+
             // Decrement secondary attack cooldown
             if (secondaryAttackCooldownRemaining > 0)
             {
@@ -557,6 +569,13 @@ namespace FadePlanet
 
             PotionCount--;
             Health = Math.Min(MaxHealth, Health + HealAmount);
+        }
+
+        private void RegenerateStamina()
+        {
+            if (Stamina >= MaxStamina) return;
+
+            Stamina = Math.Min(MaxStamina, Stamina + StaminaRegenPerSecond * GameLoopDeltaSeconds);
         }
         #endregion
 
