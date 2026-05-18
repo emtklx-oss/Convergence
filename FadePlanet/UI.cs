@@ -396,7 +396,7 @@ namespace FadePlanet
             }
 
             // Draw potion count on top of potion icon (slot 6, index 5)
-            if (potionIcon != null && PotionCount > 0)
+            if (potionIcon != null && PotionCount >= 0)
             {
                 float potionIconX = iconXs[5];
                 float potionIconY = iconYs[5];
@@ -406,8 +406,8 @@ namespace FadePlanet
                 {
                     string countText = PotionCount.ToString();
                     SizeF textSize = g.MeasureString(countText, potionCountFont);
-                    float textX = potionIconX + ItemIconSize - textSize.Width - 4;
-                    float textY = potionIconY + ItemIconSize - textSize.Height - 4;
+                    float textX = potionIconX + ItemIconSize - textSize.Width;
+                    float textY = potionIconY + ItemIconSize - textSize.Height;
                     g.DrawString(countText, potionCountFont, potionCountBrush, textX, textY);
                 }
             }
