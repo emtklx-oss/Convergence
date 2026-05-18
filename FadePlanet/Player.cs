@@ -161,13 +161,13 @@ namespace FadePlanet
         private int healFrameIndex = 0;
         private int healFrameTimer = 0;
         private const int HealFrameDuration = 3;
-        private const int HealTotalFrames = 6;
+        private const int HealTotalFrames = 12;
 
         public bool IsPlayingRockBarrier { get; private set; } = false;
         private int rockBarrierFrameIndex = 0;
         private int rockBarrierFrameTimer = 0;
         private const int RockBarrierFrameDuration = 2;
-        private const int RockBarrierTotalFrames = 6;
+        private const int RockBarrierTotalFrames = 11;
 
         public bool swordHitDealtThisSwing = false;
         public bool barrierHitDealtThisSwing = false;
@@ -185,14 +185,37 @@ namespace FadePlanet
             new Point(224, 448)
         };
 
-        private static readonly Point[] WideSheetFramePositions = new Point[]
+        // 672x896 sheet, 224x224 frames in 3 columns (rows 1–3 full, row 4 has frames 10–11)
+        private static readonly Point[] RockBarrierFramePositions = new Point[]
         {
-            new Point(0,   0),
-            new Point(224, 0),
-            new Point(448, 0),
-            new Point(0,   224),
-            new Point(224, 224),
-            new Point(448, 224)
+            new Point(0,   0),    // 1
+            new Point(224, 0),    // 2
+            new Point(448, 0),    // 3
+            new Point(0,   224),  // 4
+            new Point(224, 224),  // 5
+            new Point(448, 224),  // 6
+            new Point(0,   448),  // 7
+            new Point(224, 448),  // 8
+            new Point(448, 448),  // 9
+            new Point(0,   672),  // 10
+            new Point(224, 672)   // 11
+        };
+
+        // 672x896 sheet, 224x224 frames in 3 columns (4 full rows, frames 1–12)
+        private static readonly Point[] HealFramePositions = new Point[]
+        {
+            new Point(0,   0),    // 1
+            new Point(224, 0),    // 2
+            new Point(448, 0),    // 3
+            new Point(0,   224),  // 4
+            new Point(224, 224),  // 5
+            new Point(448, 224),  // 6
+            new Point(0,   448),  // 7
+            new Point(224, 448),  // 8
+            new Point(448, 448),  // 9
+            new Point(0,   672),  // 10
+            new Point(224, 672),  // 11
+            new Point(448, 672)   // 12
         };
 
         private int frameCounter = 0;
@@ -497,13 +520,13 @@ namespace FadePlanet
         {
             if (IsPlayingHeal)
             {
-                DrawSpritesheetFrame(g, isFacingLeft ? healSheetL : healSheetR, WideSheetFramePositions, healFrameIndex, 448);
+                DrawSpritesheetFrame(g, isFacingLeft ? healSheetL : healSheetR, HealFramePositions, healFrameIndex, 448);
                 return;
             }
 
             if (IsPlayingRockBarrier)
             {
-                DrawSpritesheetFrame(g, isFacingLeft ? rockBarrierSheetL : rockBarrierSheetR, WideSheetFramePositions, rockBarrierFrameIndex, 448);
+                DrawSpritesheetFrame(g, isFacingLeft ? rockBarrierSheetL : rockBarrierSheetR, RockBarrierFramePositions, rockBarrierFrameIndex, 448);
                 return;
             }
 
