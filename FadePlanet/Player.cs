@@ -30,13 +30,7 @@ namespace FadePlanet
         private const float RockBarrierKnockbackDistance = 130f;
         private const float BarrierHitboxWidth = 180f;
         private const int HealAmount = 40;
-
         // =====================================================================
-        // STAMINA SETTINGS — tweak these to balance earth attack usage
-        // =====================================================================
-        private const float FireballStaminaCost = 5f;
-        private const float WaterRippleStaminaCost = 20f;
-        private const float RockBarrierStaminaCost = 25f;
         private const float StaminaRegenPerSecond = 10f;
         private const float GameLoopDeltaSeconds = 0.016f; // matches 16ms timer in Convergence
         // =====================================================================
@@ -50,6 +44,7 @@ namespace FadePlanet
         public int MaxHealth { get; private set; } = 100;
 
         public float Stamina { get; private set; } = 100f;
+       
         public float MaxStamina { get; private set; } = 100f;
 
         
@@ -97,9 +92,6 @@ namespace FadePlanet
             { Keys.D3, new EarthScroll() },
             { Keys.D4, new AirScroll() }
         };
-        public bool CanUseRockBarrier => Stamina >= RockBarrierStaminaCost;
-        public bool CanUseWaterRipple => Stamina >= WaterRippleStaminaCost;
-        public bool CanUseFireball => Stamina >= FireballStaminaCost;
 
         public bool ScrollSwitchLocked { get; set; } = false;
         #endregion
@@ -150,11 +142,10 @@ namespace FadePlanet
         private float knockbackRemaining = 0f;
         #endregion
 
-        #region Secondary Attack Cooldown
-        private const int SecondaryAttackCooldownMs = 1000; // 1 second cooldown
-        private int secondaryAttackCooldownRemaining = 0;
+        #region Primary Attack Cooldown
+        private const int AbilityCooldownMs = 1000; // 1 second cooldown
+        private int AbilityCooldownRemaining = 0;
 
-        public bool CanUseSecondaryAttack => secondaryAttackCooldownRemaining <= 0;
         #endregion
 
         public Player(Point pos, Size size) : base(pos, size, ObjectType.Player)
@@ -339,7 +330,7 @@ namespace FadePlanet
 
             IsPlayingSlash = true;
             slashFrameIndex = 0;
-            slashFrameTimer = 0;
+            slashFrameTimer = 0;aa
             swordHitDealtThisSwing = false;
         }
         public void TriggerHealAnimation()
@@ -352,26 +343,26 @@ namespace FadePlanet
         }
         public void TriggerRockBarrierAnimation()
         {
-            if (IsActionLocked || !CanUseRockBarrier) return;
+            if (IsActionLocked) return;
 
-            Stamina -= RockBarrierStaminaCost;
             IsPlayingRockBarrier = true;
             rockBarrierFrameIndex = 0;
             rockBarrierFrameTimer = 0;
             barrierHitDealtThisSwing = false;
         }
-        
+
         #endregion
 
+        #endregion
         // Takes a plain list of WorldObjects so accessibility matches public
         public void Update(List<WorldObject> enemyObjects)
         {
             RegenerateStamina();
 
             // Decrement secondary attack cooldown
-            if (secondaryAttackCooldownRemaining > 0)
+            if (AbilityCooldownRemaining > 0)
             {
-                secondaryAttackCooldownRemaining -= 16; // ~16ms per frame at 60fps
+                AbilityCooldownRemaining -= 16; // ~16ms per frame at 60fps
             }
 
             // Handle knockback first — overrides everything
@@ -623,6 +614,16 @@ namespace FadePlanet
 
             Stamina = Math.Min(MaxStamina, Stamina + StaminaRegenPerSecond * GameLoopDeltaSeconds);
         }
+
+        public void UseStamina(float amount)
+        {
+            Stamina = Math.Max(0, Stamina - amount);
+        }
+
+        public bool CanUseAbility(float staminaCost)
+        {
+            return Stamina >= staminaCost && AbilityCooldownRemaining <= 0;
+        }
         #endregion
 
         #region Hitbox Drawing
@@ -679,23 +680,18 @@ namespace FadePlanet
                     return;
                 }
 
-                if (selectedSlot == InventorySlotEarthScroll && CurrentElement is EarthScroll)
-                {
-                    TriggerRockBarrierAnimation();
-                    CurrentElement?.PrimaryAttack(this);
-                    return;
-                }
+                if (selectedSlot == InventorySlotEarthScroll && CurrentElement is EarthScroll) { TriggerRockBarrierAnimation(); } 
+                else { TriggerSlashAnimation(); }
 
-                TriggerSlashAnimation();
                 CurrentElement?.PrimaryAttack(this);
+                AbilityCooldownRemaining = AbilityCooldownMs;
             }
             if (e.Button == MouseButtons.Right)
             {
-                if (CanUseSecondaryAttack && !IsActionLocked)
+                if (!IsActionLocked)
                 {
                     TriggerSlashAnimation();
-                    CurrentElement?.SecondaryAttack(this);
-                    secondaryAttackCooldownRemaining = SecondaryAttackCooldownMs;
+                    
                 }
             }
         }

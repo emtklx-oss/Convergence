@@ -12,25 +12,23 @@ namespace FadePlanet
         public interface IElement
         {
             ElementType Type { get; }
+            float StaminaCost  { get; }
             void PrimaryAttack(Player player);
-            void SecondaryAttack(Player player);
-             
+            
         }
 
         public class FireScroll : IElement
         {
             public ElementType Type => ElementType.Fire;
-
+            public float StaminaCost { get; } = 5f;
             public void PrimaryAttack(Player player)
             {
-
+                if (!player.CanUseAbility(StaminaCost)) return;
+                player.UseStamina(StaminaCost);
+                ShootFireball(player);
                 Console.WriteLine($"Primary attack of type: {Type}");
             }
-            public void SecondaryAttack(Player player)
-            {
-                ShootFireball(player);
-                Console.WriteLine($"Secondary attack of type: {Type}");
-            }
+            
             public void ShootFireball(Player player)
             {
                 PointF dir = player.GetAttackDirection();
@@ -51,45 +49,44 @@ namespace FadePlanet
         public class WaterScroll : IElement
         {
             public ElementType Type => ElementType.Water;
+            public float StaminaCost { get; } = 20f;
+
             public void PrimaryAttack(Player player)
             {
-                Console.WriteLine($"Primary attack of type: {Type}");
-            }
-            public void SecondaryAttack(Player player)
-            {
+                if (!player.CanUseAbility(StaminaCost)) return;
+                player.UseStamina(StaminaCost);
                 SpawnRipple(player);
-                Console.WriteLine($"Secondary attack of type: {Type}");
+                Console.WriteLine($"Primary attack of type: {Type}");
             }
             public void SpawnRipple(Player player)
             {
                 new Ripple(player.Position);
             }
+
         }
         public class EarthScroll : IElement
         {
             public ElementType Type => ElementType.Earth;
+            public float StaminaCost { get; } = 25f;
             public void PrimaryAttack(Player player)
             {
+                if (!player.CanUseAbility(StaminaCost)) return;
+                player.UseStamina(StaminaCost);
                 Console.WriteLine($"Primary attack of type: {Type}");
             }
 
-            public void SecondaryAttack(Player player)
-            {
-                Console.WriteLine($"Secondary attack of type: {Type}");
-            }
-           
         }
         public class AirScroll : IElement
         {
             public ElementType Type => ElementType.Air;
+            public float StaminaCost { get; } = 5f;
             public void PrimaryAttack(Player player)
-            { // Logic to spawn a Fireball projectile moving toward target
+            {
+                if (!player.CanUseAbility(StaminaCost)) return;
+                player.UseStamina(StaminaCost);
                 Console.WriteLine($"Primary attack of type: {Type}");
             }
-            public void SecondaryAttack(Player player)
-            { // Logic for an explosion around the player 
-                Console.WriteLine($"Secondary attack of type: {Type}");
-            }
+            
         }
     }
 }
