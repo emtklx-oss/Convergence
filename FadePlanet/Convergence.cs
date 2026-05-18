@@ -154,8 +154,33 @@ namespace FadePlanet
                 return true;
             });
 
-            foreach (Enemy en in enemies)
-                en.Update(player);
+            foreach (Enemy en in enemies) { en.Update(player); }
+
+            GameManager.AllObjects.TryGetValue(ObjectType.Projectile, out var projs);
+            if (projs != null)
+            {
+                foreach (Projectile proj in projs.Values.ToList())
+                {
+                    proj.Update();
+                    if (proj.Position.X < -50 || proj.Position.X > ClientSize.Width + 50)
+                    {
+                        GameManager.DespawnObject(proj);
+                    }
+                }
+            }
+
+            // Update ripples
+            if (GameManager.AllObjects.TryGetValue(ObjectType.None, out var ripples))
+            {
+                foreach (WorldObject ripple in ripples.Values.ToList())
+                {
+                    if (ripple is Ripple r)
+                    {
+                        r.Update();
+                    }
+                }
+            }
+
 
             // 5. Token update and pickup check
             if (airToken != null)
@@ -194,6 +219,24 @@ namespace FadePlanet
 
             foreach (Enemy en in enemies)
                 en.Draw(e.Graphics);
+
+            GameManager.AllObjects.TryGetValue(ObjectType.Projectile, out var projs);
+            if (projs != null)
+            foreach (Projectile proj in projs?.Values ) 
+                proj.Draw(e.Graphics);
+
+            // Draw ripples
+            GameManager.AllObjects.TryGetValue(ObjectType.None, out var ripples);
+            if (ripples != null)
+            {
+                foreach (WorldObject ripple in ripples.Values)
+                {
+                    if (ripple is Ripple r)
+                    {
+                        r.Draw(e.Graphics);
+                    }
+                }
+            }
 
             player.Draw(e.Graphics);
             player.DrawHitbox(e.Graphics);

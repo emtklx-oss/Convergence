@@ -9,7 +9,7 @@ namespace FadePlanet
 {
     // Made public so Player.Update(List<Enemy>) accessibility matches
     public enum EnemyType { Air, Water, Earth, Fire }
-    public enum EnemyState { Idle, Walking, Attacking, Knockback }
+    public enum EnemyState { Idle, Walking, Attacking, Knockback, Stunned }
 
     internal class Enemy : WorldObject
     {
@@ -32,7 +32,8 @@ namespace FadePlanet
         private const float FireWalkSpeed = 2.0f;
 
         private const float DetectionRadius = 300f;
-        private const float AttackRadius = 60f;
+        private const float AttackRadius = 150f; // Increased from 60f to keep distance
+        private const float StoppingDistance = 120f; // Distance to stop and prepare leap
         private const float HopHeight = 8f;
         private const float HopSpeed = 0.15f;
         private const float AttackJumpSpeed = 6f;
@@ -65,9 +66,13 @@ namespace FadePlanet
         private PointF attackTarget;
         private bool attackHitDealt = false;
         private bool returningToOrigin = false;
+        private int leapPrepareTimer = 0;
+        private const int LeapPrepareTime = 500; // 500ms wind-up before leap
 
         private PointF knockbackDirection;
         private float knockbackRemaining = 0f;
+
+        private int stunRemaining = 0;
         #endregion
 
         #region Animation
@@ -151,6 +156,12 @@ namespace FadePlanet
         // =====================================================================
         public void Update(Player player)
         {
+            // Decrement stun duration
+            if (stunRemaining > 0)
+            {
+                stunRemaining -= 16; // ~16ms per frame at 60fps
+            }
+
             float dx = player.Position.X + 112f - (Position.X + DrawSize / 2f);
             float dy = player.Position.Y + 112f - (Position.Y + DrawSize / 2f);
             float distance = (float)Math.Sqrt(dx * dx + dy * dy);
@@ -169,12 +180,14 @@ namespace FadePlanet
                     UpdateAnimation(walkFrameCount);
                     UpdateHop();
 
-                    if (distance <= AttackRadius)
+                    if (distance <= StoppingDistance)
                     {
+                        // Close enough to attack - prepare leap
                         attackOrigin = Position;
                         attackTarget = player.Position;
                         attackHitDealt = false;
                         returningToOrigin = false;
+                        leapPrepareTimer = 0;
                         State = EnemyState.Attacking;
                         break;
                     }
@@ -200,29 +213,40 @@ namespace FadePlanet
 
                     if (!returningToOrigin)
                     {
-                        // Flying toward player
-                        float atDx = attackTarget.X - Position.X;
-                        float atDy = attackTarget.Y - Position.Y;
-                        float atLen = (float)Math.Sqrt(atDx * atDx + atDy * atDy);
+                        // Leap preparation phase
+                        leapPrepareTimer += 16; // ~16ms per frame
 
-                        if (atLen > AttackJumpSpeed)
+                        if (leapPrepareTimer < LeapPrepareTime)
                         {
-                            Position = new PointF(
-                                Position.X + (atDx / atLen) * AttackJumpSpeed,
-                                Position.Y + (atDy / atLen) * AttackJumpSpeed
-                            );
-
-                            if (!attackHitDealt && Bounds.IntersectsWith(player.Hitbox))
-                            {
-                                player.TakeDamage(Damage);
-                                player.ApplyKnockback(Position);
-                                attackHitDealt = true;
-                            }
+                            // During wind-up, stay at attack origin and don't move
+                            // This gives a visible tell before the leap
                         }
                         else
                         {
-                            // Reached target — start bouncing back
-                            returningToOrigin = true;
+                            // Leap phase - fly toward player
+                            float atDx = attackTarget.X - Position.X;
+                            float atDy = attackTarget.Y - Position.Y;
+                            float atLen = (float)Math.Sqrt(atDx * atDx + atDy * atDy);
+
+                            if (atLen > AttackJumpSpeed)
+                            {
+                                Position = new PointF(
+                                    Position.X + (atDx / atLen) * AttackJumpSpeed,
+                                    Position.Y + (atDy / atLen) * AttackJumpSpeed
+                                );
+
+                                if (!attackHitDealt && Bounds.IntersectsWith(player.Hitbox))
+                                {
+                                    player.TakeDamage(Damage);
+                                    player.ApplyKnockback(Position);
+                                    attackHitDealt = true;
+                                }
+                            }
+                            else
+                            {
+                                // Reached target — start bouncing back
+                                returningToOrigin = true;
+                            }
                         }
                     }
                     else
@@ -260,6 +284,14 @@ namespace FadePlanet
                         knockbackRemaining -= step;
                     }
                     else
+                    {
+                        State = EnemyState.Walking;
+                    }
+                    break;
+
+                case EnemyState.Stunned:
+                    UpdateAnimation(idleFrameCount);
+                    if (stunRemaining <= 0)
                     {
                         State = EnemyState.Walking;
                     }
@@ -316,13 +348,21 @@ namespace FadePlanet
             GameManager.DespawnObject(this);
         }
 
+        public void ApplyStun(int durationMs)
+        {
+            stunRemaining = durationMs;
+            State = EnemyState.Stunned;
+            animFrame = 0;
+            animTimer = 0;
+        }
+
         // =====================================================================
         // DRAW
         // =====================================================================
         public override void Draw(Graphics g)
         {
-            Bitmap sheet = (State == EnemyState.Idle || State == EnemyState.Knockback) ? idleSheet : walkSheet;
-            int frameCount = (State == EnemyState.Idle || State == EnemyState.Knockback) ? idleFrameCount : walkFrameCount;
+            Bitmap sheet = (State == EnemyState.Idle || State == EnemyState.Knockback || State == EnemyState.Stunned) ? idleSheet : walkSheet;
+            int frameCount = (State == EnemyState.Idle || State == EnemyState.Knockback || State == EnemyState.Stunned) ? idleFrameCount : walkFrameCount;
 
             if (sheet == null) return;
 
@@ -360,7 +400,7 @@ namespace FadePlanet
             float healthPercent = (float)Health / MaxHealth;
             float fillWidth = HealthBarWidth * healthPercent;
 
-            using (SolidBrush bgBrush = new SolidBrush(Color.DarkRed))
+            using (SolidBrush bgBrush = new SolidBrush(Color.Black))
                 g.FillRectangle(bgBrush, barX, barY, HealthBarWidth, HealthBarHeight);
 
             if (fillWidth > 0)

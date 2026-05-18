@@ -15,7 +15,8 @@ namespace FadePlanet
         Enemy,
         Friendly,
         Player,
-        Item
+        Item,
+        Projectile
     }
 
     public enum ObjectState
@@ -59,7 +60,7 @@ namespace FadePlanet
         public Bitmap GetCurrentSheet() => Animations[CurrentState];
         #endregion
 
-        public WorldObject(Point pos, Size size, ObjectType type = ObjectType.None)
+        public WorldObject(PointF pos, SizeF size, ObjectType type = ObjectType.None)
         {
             Position = pos;
             ObjSize = size;

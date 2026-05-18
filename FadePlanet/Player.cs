@@ -101,6 +101,13 @@ namespace FadePlanet
         private float knockbackRemaining = 0f;
         #endregion
 
+        #region Secondary Attack Cooldown
+        private const int SecondaryAttackCooldownMs = 1000; // 1 second cooldown
+        private int secondaryAttackCooldownRemaining = 0;
+
+        public bool CanUseSecondaryAttack => secondaryAttackCooldownRemaining <= 0;
+        #endregion
+
         public Player(Point pos, Size size) : base(pos, size, ObjectType.Player)
         {
             CurrentElement = _abilities[Keys.D4];
@@ -137,8 +144,8 @@ namespace FadePlanet
         private const int SlashFrameDuration = 2;
         private const int SlashTotalFrames = 6;
 
-        private bool swordHitDealtThisSwing = false;
-        private bool isFacingLeft = false;
+        public bool swordHitDealtThisSwing = false; //set in Abilities when player left-clicks, not when they use secondary
+        public bool isFacingLeft { get; private set; } = false;
 
         private static readonly Point[] SlashFramePositions = new Point[]
         {
@@ -210,12 +217,17 @@ namespace FadePlanet
             IsPlayingSlash = true;
             slashFrameIndex = 0;
             slashFrameTimer = 0;
-            swordHitDealtThisSwing = false;
         }
 
         // Takes a plain list of WorldObjects so accessibility matches public
         public void Update(List<WorldObject> enemyObjects)
         {
+            // Decrement secondary attack cooldown
+            if (secondaryAttackCooldownRemaining > 0)
+            {
+                secondaryAttackCooldownRemaining -= 16; // ~16ms per frame at 60fps
+            }
+
             // Handle knockback first — overrides everything
             if (isKnockedBack)
             {
@@ -345,6 +357,18 @@ namespace FadePlanet
             isKnockedBack = true;
         }
 
+        public PointF GetAttackDirection()
+        {
+            // Check movement direction first (WASD keys)
+            if (isMovingUp) return new PointF(0, -1);
+            if (isMovingDown) return new PointF(0, 1);
+            if (isMovingLeft) return new PointF(-1, 0);
+            if (isMovingRight) return new PointF(1, 0);
+
+            // Fall back to facing direction
+            return isFacingLeft ? new PointF(-1, 0) : new PointF(1, 0);
+        }
+
         public override void Draw(Graphics g)
         {
             if (IsPlayingSlash)
@@ -417,12 +441,19 @@ namespace FadePlanet
         {
             if (e.Button == MouseButtons.Left)
             {
+                swordHitDealtThisSwing = false;
                 TriggerSlashAnimation();
+                
                 CurrentElement?.PrimaryAttack(this);
             }
             if (e.Button == MouseButtons.Right)
-            {
-                CurrentElement?.SecondaryAttack(this);
+            { 
+                if (CanUseSecondaryAttack)
+                {
+                    TriggerSlashAnimation();
+                    CurrentElement?.SecondaryAttack(this);
+                    secondaryAttackCooldownRemaining = SecondaryAttackCooldownMs;
+                }
             }
         }
 

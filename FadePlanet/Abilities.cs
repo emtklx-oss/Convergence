@@ -28,7 +28,24 @@ namespace FadePlanet
             }
             public void SecondaryAttack(Player player)
             {
+                ShootFireball(player);
                 Console.WriteLine($"Secondary attack of type: {Type}");
+            }
+            public void ShootFireball(Player player)
+            {
+                PointF dir = player.GetAttackDirection();
+
+                // Calculate spawn position based on direction
+                float posX = player.Position.X + player.ObjSize.Width / 2;
+                float posY = player.Position.Y + player.ObjSize.Height / 2;
+
+                // Offset spawn position in the direction being fired
+                if (dir.X < 0) posX = player.Position.X;
+                if (dir.X > 0) posX = player.Position.X + player.ObjSize.Width;
+                if (dir.Y < 0) posY = player.Position.Y;
+                if (dir.Y > 0) posY = player.Position.Y + player.ObjSize.Height;
+
+                new Projectile(new PointF(posX, posY), new SizeF(32, 32), ElementType.Fire, dir);
             }
         }
         public class WaterScroll : IElement
@@ -40,7 +57,12 @@ namespace FadePlanet
             }
             public void SecondaryAttack(Player player)
             {
+                SpawnRipple(player);
                 Console.WriteLine($"Secondary attack of type: {Type}");
+            }
+            public void SpawnRipple(Player player)
+            {
+                new Ripple(player.Position);
             }
         }
         public class EarthScroll : IElement
