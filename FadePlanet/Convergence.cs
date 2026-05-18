@@ -124,7 +124,7 @@ namespace FadePlanet
 
         private void Convergence_MouseClick(object sender, MouseEventArgs e)
         {
-            player.HandleMouseClick(e);
+            player.HandleMouseClick(e, gameUI.SelectedSlot);
         }
 
         // --- GAME LOOP UPDATE ---

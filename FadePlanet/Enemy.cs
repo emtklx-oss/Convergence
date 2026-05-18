@@ -376,6 +376,11 @@ namespace FadePlanet
         // =====================================================================
         public void TakeDamage(int damage, PointF sourcePosition)
         {
+            TakeDamage(damage, sourcePosition, EnemyKnockbackDistance);
+        }
+
+        public void TakeDamage(int damage, PointF sourcePosition, float knockbackDistance)
+        {
             Health -= damage;
 
             if (Health <= 0)
@@ -387,7 +392,7 @@ namespace FadePlanet
 
             knockbackDirection = GetHorizontalDirection(Position.X - sourcePosition.X);
 
-            knockbackRemaining = EnemyKnockbackDistance;
+            knockbackRemaining = knockbackDistance;
             animFrame = 0;
             animTimer = 0;
             State = EnemyState.Knockback;
