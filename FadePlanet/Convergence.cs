@@ -48,7 +48,7 @@ namespace FadePlanet
             gameUI = new UI();
             player = new Player(new Point(528, 248), new Size(224, 224));
 
-            // Create items through GameManager
+            // Create items
             Item airToken = new Item(new Point(700, 300), new Size(Item.DrawSize, Item.DrawSize), ItemType.Token, ElementType.Air);
             Item potion = new Item(new Point(600, 250), new Size(Item.DrawSize, Item.DrawSize), ItemType.Potion);
             
@@ -117,18 +117,16 @@ namespace FadePlanet
 
             player.HandleKeyDown(e);
         }
-
-        private void Convergence_Load(object sender, EventArgs e) { }
-
         private void Convergence_KeyUp(object sender, KeyEventArgs e)
         {
             player.HandleKeyUp(e);
         }
-
+        private void Convergence_Load(object sender, EventArgs e) { }
         private void Convergence_MouseClick(object sender, MouseEventArgs e)
         {
             player.HandleMouseClick(e);
         }
+
 
         // --- GAME LOOP UPDATE ---
         private void GameLoop_Tick(object sender, EventArgs e)
@@ -217,7 +215,6 @@ namespace FadePlanet
             this.Invalidate();
         }
 
-      
         // Helper method to update all objects of a specific type from GameManager
         private void UpdateObjectType(ObjectType type, Action<WorldObject> updateAction)
         {
@@ -229,6 +226,7 @@ namespace FadePlanet
                 }
             }
         }
+
 
         // --- DRAW TO THE SCREEN ---
         protected override void OnPaint(PaintEventArgs e)
