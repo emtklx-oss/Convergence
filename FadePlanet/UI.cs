@@ -73,6 +73,9 @@ namespace FadePlanet
         // Which slot is currently selected (0-indexed)
         private int selectedSlot = 4; // Default = slot 5 (sword)
 
+        // 0=Water, 1=Fire, 2=Earth, 3=Air, 4=Sword, 5=Potion
+        public int SelectedSlot => selectedSlot;
+
         // Stores a scroll slot press that came in while locked
         // -1 means no pending slot
         private int pendingSlot = -1;

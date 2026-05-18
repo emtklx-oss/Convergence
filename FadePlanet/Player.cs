@@ -24,10 +24,17 @@ namespace FadePlanet
         // =====================================================================
         private const float SwordHitboxWidth = 140f;
         private const float SwordHitboxHeight = 100f;
-        private const float SwordHitboxOffsetX = 100f;
         private const float SwordHitboxOffsetY = 80f;
         private const int SwordDamage = 20;
+        private const int RockBarrierDamage = 40;
+        private const float RockBarrierKnockbackDistance = 130f;
+        private const float BarrierHitboxWidth = 180f;
+        private const int HealAmount = 40;
         // =====================================================================
+
+        public const int InventorySlotEarthScroll = 2;
+        public const int InventorySlotSword = 4;
+        public const int InventorySlotPotion = 5;
 
         #region Player Stats
         public int Health { get; private set; } = 100;
@@ -78,6 +85,8 @@ namespace FadePlanet
                 TriggerHealthGainAnimation();
             }
         }
+        private int TokenCount { get; set; } = 0;
+        public int PotionCount { get; private set; } = 3;
         #endregion
 
         #region Player Abilities
@@ -119,6 +128,17 @@ namespace FadePlanet
             {
                 float offsetX = isFacingLeft ? Position.X - SwordHitboxOffsetX + 80f
                     : Position.X + SwordHitboxOffsetX;
+        // Melee attack hitbox — wider rectangle in front of the player
+        public RectangleF SwordHitbox => GetMeleeHitbox(SwordHitboxWidth);
+
+        public RectangleF BarrierHitbox => GetMeleeHitbox(BarrierHitboxWidth);
+
+        private RectangleF GetMeleeHitbox(float width)
+        {
+            const float meleeGap = 8f;
+            float offsetX = isFacingLeft
+                ? HitboxOffsetX - meleeGap - width
+                : HitboxOffsetX + HitboxWidth + meleeGap;
 
                 return new RectangleF(
                     offsetX,
@@ -127,6 +147,13 @@ namespace FadePlanet
                     SwordHitboxHeight
                 );
             }
+        }
+            return new RectangleF(
+                Position.X + offsetX,
+                Position.Y + SwordHitboxOffsetY,
+                width,
+                SwordHitboxHeight
+            );
         }
 
         // Override the base ShowHitbox toggle
@@ -171,6 +198,10 @@ namespace FadePlanet
 
         private Bitmap slashSheetR;
         private Bitmap slashSheetL;
+        private Bitmap healSheetR;
+        private Bitmap healSheetL;
+        private Bitmap rockBarrierSheetR;
+        private Bitmap rockBarrierSheetL;
 
         private Bitmap healSheetR;
         private Bitmap healSheetL;
@@ -192,6 +223,24 @@ namespace FadePlanet
 
         public bool swordHitDealtThisSwing = false; //set in Abilities when player left-clicks, not when they use secondary
         
+        public bool IsPlayingHeal { get; private set; } = false;
+        private int healFrameIndex = 0;
+        private int healFrameTimer = 0;
+        private const int HealFrameDuration = 3;
+        private const int HealTotalFrames = 12;
+
+        public bool IsPlayingRockBarrier { get; private set; } = false;
+        private int rockBarrierFrameIndex = 0;
+        private int rockBarrierFrameTimer = 0;
+        private const int RockBarrierFrameDuration = 2;
+        private const int RockBarrierTotalFrames = 11;
+
+        public bool swordHitDealtThisSwing = false;
+        public bool barrierHitDealtThisSwing = false;
+        public bool isFacingLeft { get; private set; } = false;
+
+        private bool IsActionLocked => IsPlayingSlash || IsPlayingHeal || IsPlayingRockBarrier || IsPlayingPickup;
+
         private static readonly Point[] SlashFramePositions = new Point[]
         {
             new Point(0,   0),
@@ -212,6 +261,39 @@ namespace FadePlanet
         #endregion
 
         public bool isFacingLeft { get; private set; } = false;
+
+        // 672x896 sheet, 224x224 frames in 3 columns (rows 1–3 full, row 4 has frames 10–11)
+        private static readonly Point[] RockBarrierFramePositions = new Point[]
+        {
+            new Point(0,   0),    // 1
+            new Point(224, 0),    // 2
+            new Point(448, 0),    // 3
+            new Point(0,   224),  // 4
+            new Point(224, 224),  // 5
+            new Point(448, 224),  // 6
+            new Point(0,   448),  // 7
+            new Point(224, 448),  // 8
+            new Point(448, 448),  // 9
+            new Point(0,   672),  // 10
+            new Point(224, 672)   // 11
+        };
+
+        // 672x896 sheet, 224x224 frames in 3 columns (4 full rows, frames 1–12)
+        private static readonly Point[] HealFramePositions = new Point[]
+        {
+            new Point(0,   0),    // 1
+            new Point(224, 0),    // 2
+            new Point(448, 0),    // 3
+            new Point(0,   224),  // 4
+            new Point(224, 224),  // 5
+            new Point(448, 224),  // 6
+            new Point(0,   448),  // 7
+            new Point(224, 448),  // 8
+            new Point(448, 448),  // 9
+            new Point(0,   672),  // 10
+            new Point(224, 672),  // 11
+            new Point(448, 672)   // 12
+        };
 
         private int frameCounter = 0;
         private int idleAnimationSpeed = 30;
@@ -255,6 +337,14 @@ namespace FadePlanet
                 healSheetL = (Bitmap)healSheetR.Clone();
                 healSheetL.RotateFlip(RotateFlipType.RotateNoneFlipX);
 
+                healSheetR = new Bitmap(Path.Combine(basePath, @"Graphics\Player\Healing\Healing.png"));
+                healSheetL = (Bitmap)healSheetR.Clone();
+                healSheetL.RotateFlip(RotateFlipType.RotateNoneFlipX);
+
+                rockBarrierSheetR = new Bitmap(Path.Combine(basePath, @"Graphics\Player\Attacks\MainCharacter.RockBarrier.png"));
+                rockBarrierSheetL = (Bitmap)rockBarrierSheetR.Clone();
+                rockBarrierSheetL.RotateFlip(RotateFlipType.RotateNoneFlipX);
+
                 currentImage = idleR1;
             }
             catch (Exception ex)
@@ -272,7 +362,7 @@ namespace FadePlanet
         }
         public void TriggerSlashAnimation()
         {
-            if (IsPlayingSlash) return;
+            if (IsActionLocked) return;
 
             IsPlayingSlash = true;
             slashFrameIndex = 0;
@@ -287,6 +377,24 @@ namespace FadePlanet
             HpGainFrameTimer = 0;
         }
         #endregion
+
+        public void TriggerHealAnimation()
+        {
+            if (IsActionLocked || PotionCount <= 0) return;
+
+            IsPlayingHeal = true;
+            healFrameIndex = 0;
+            healFrameTimer = 0;
+        }
+
+        public void TriggerRockBarrierAnimation()
+        {
+            if (IsActionLocked) return;
+
+            IsPlayingRockBarrier = true;
+            rockBarrierFrameIndex = 0;
+            rockBarrierFrameTimer = 0;
+        }
 
         // Takes a plain list of WorldObjects so accessibility matches public
         public void Update(List<WorldObject> enemyObjects)
@@ -342,6 +450,66 @@ namespace FadePlanet
                 return;
             }
 
+            // Heal animation
+            if (IsPlayingHeal)
+            {
+                healFrameTimer++;
+
+                if (healFrameTimer >= HealFrameDuration)
+                {
+                    healFrameTimer = 0;
+                    healFrameIndex++;
+
+                    if (healFrameIndex >= HealTotalFrames)
+                    {
+                        ApplyHeal();
+                        IsPlayingHeal = false;
+                        healFrameIndex = 0;
+                        currentImage = isFacingLeft ? idleL1 : idleR1;
+                    }
+                }
+
+                return;
+            }
+
+            // Rock barrier animation
+            if (IsPlayingRockBarrier)
+            {
+                rockBarrierFrameTimer++;
+
+                if (rockBarrierFrameTimer >= RockBarrierFrameDuration)
+                {
+                    rockBarrierFrameTimer = 0;
+                    rockBarrierFrameIndex++;
+
+                    if (rockBarrierFrameIndex >= RockBarrierTotalFrames)
+                    {
+                        IsPlayingRockBarrier = false;
+                        rockBarrierFrameIndex = 0;
+                        currentImage = isFacingLeft ? idleL1 : idleR1;
+                    }
+                }
+
+                if (!barrierHitDealtThisSwing && enemyObjects != null)
+                {
+                    PointF attackSource = new PointF(Position.X + 112f, Position.Y + 112f);
+
+                    foreach (WorldObject obj in enemyObjects)
+                    {
+                        Enemy enemy = obj as Enemy;
+                        if (enemy == null) continue;
+
+                        if (BarrierHitbox.IntersectsWith(enemy.Bounds))
+                        {
+                            enemy.TakeDamage(RockBarrierDamage, attackSource, RockBarrierKnockbackDistance);
+                        }
+                    }
+                    barrierHitDealtThisSwing = true;
+                }
+
+                return;
+            }
+
             // Slash animation
             if (IsPlayingSlash)
             {
@@ -363,6 +531,8 @@ namespace FadePlanet
                 // Check sword hitbox against enemies once per swing
                 if (!swordHitDealtThisSwing && enemyObjects != null)
                 {
+                    PointF attackSource = new PointF(Position.X + 112f, Position.Y + 112f);
+
                     foreach (WorldObject obj in enemyObjects)
                     {
                         Enemy enemy = obj as Enemy;
@@ -370,10 +540,7 @@ namespace FadePlanet
 
                         if (SwordHitbox.IntersectsWith(enemy.Bounds))
                         {
-                            enemy.TakeDamage(SwordDamage, new PointF(
-                                Position.X + 112f,
-                                Position.Y + 112f
-                            ));
+                            enemy.TakeDamage(SwordDamage, attackSource);
                         }
                     }
                     swordHitDealtThisSwing = true;
@@ -432,6 +599,21 @@ namespace FadePlanet
             }
         }
 
+        public void ApplyKnockback(PointF sourcePosition)
+        {
+            knockbackDirection = GetHorizontalDirection(Position.X - sourcePosition.X);
+            knockbackRemaining = PlayerKnockbackDistance;
+            isKnockedBack = true;
+        }
+
+        private static PointF GetHorizontalDirection(float deltaX)
+        {
+            if (Math.Abs(deltaX) < 0.01f)
+                return new PointF(1f, 0f);
+
+            return new PointF(Math.Sign(deltaX), 0f);
+        }
+
         public PointF GetAttackDirection()
         {
             // Check movement direction first (WASD keys)
@@ -446,33 +628,45 @@ namespace FadePlanet
 
         public override void Draw(Graphics g)
         {
+            if (IsPlayingHeal)
+            {
+                DrawSpritesheetFrame(g, isFacingLeft ? healSheetL : healSheetR, HealFramePositions, healFrameIndex, 448);
+                return;
+            }
+
+            if (IsPlayingRockBarrier)
+            {
+                DrawSpritesheetFrame(g, isFacingLeft ? rockBarrierSheetL : rockBarrierSheetR, RockBarrierFramePositions, rockBarrierFrameIndex, 448);
+                return;
+            }
+
             if (IsPlayingSlash)
             {
-                Bitmap activeSheet = isFacingLeft ? slashSheetL : slashSheetR;
-
-                if (activeSheet != null)
-                {
-                    Point framePos = SlashFramePositions[slashFrameIndex];
-
-                    Rectangle srcRect;
-                    if (isFacingLeft)
-                    {
-                        int mirroredX = framePos.X == 0 ? 224 : 0;
-                        srcRect = new Rectangle(mirroredX, framePos.Y, 224, 224);
-                    }
-                    else
-                    {
-                        srcRect = new Rectangle(framePos.X, framePos.Y, 224, 224);
-                    }
-
-                    RectangleF destRect = new RectangleF(Position.X, Position.Y, 224, 224);
-                    g.DrawImage(activeSheet, destRect, srcRect, GraphicsUnit.Pixel);
-                }
+                DrawSpritesheetFrame(g, isFacingLeft ? slashSheetL : slashSheetR, SlashFramePositions, slashFrameIndex, 224);
+                return;
             }
-            else if (currentImage != null)
-            {
+
+            if (currentImage != null)
                 g.DrawImage(currentImage, Position.X, Position.Y, 224, 224);
-            }
+        }
+
+        private void DrawSpritesheetFrame(Graphics g, Bitmap sheet, Point[] framePositions, int frameIndex, int maxFrameX)
+        {
+            if (sheet == null) return;
+
+            Point framePos = framePositions[frameIndex];
+            int srcX = isFacingLeft ? maxFrameX - framePos.X : framePos.X;
+            Rectangle srcRect = new Rectangle(srcX, framePos.Y, 224, 224);
+            RectangleF destRect = new RectangleF(Position.X, Position.Y, 224, 224);
+            g.DrawImage(sheet, destRect, srcRect, GraphicsUnit.Pixel);
+        }
+
+        private void ApplyHeal()
+        {
+            if (PotionCount <= 0) return;
+
+            PotionCount--;
+            Health = Math.Min(MaxHealth, Health + HealAmount);
         }
         #endregion
 
@@ -488,6 +682,12 @@ namespace FadePlanet
             {
                 using (Pen swordPen = new Pen(Color.Blue, 2f))
                     g.DrawRectangle(swordPen, SwordHitbox.X, SwordHitbox.Y, SwordHitbox.Width, SwordHitbox.Height);
+            }
+
+            if (IsPlayingRockBarrier)
+            {
+                using (Pen barrierPen = new Pen(Color.SaddleBrown, 2f))
+                    g.DrawRectangle(barrierPen, BarrierHitbox.X, BarrierHitbox.Y, BarrierHitbox.Width, BarrierHitbox.Height);
             }
         }
         #endregion
@@ -515,18 +715,31 @@ namespace FadePlanet
             if (e.KeyCode == Keys.D) isMovingRight = false;
         }
 
-        public void HandleMouseClick(MouseEventArgs e)
+        public void HandleMouseClick(MouseEventArgs e, int selectedSlot)
         {
             if (e.Button == MouseButtons.Left)
             {
+                if (selectedSlot == InventorySlotPotion)
+                {
+                    TriggerHealAnimation();
+                    return;
+                }
+
+                if (selectedSlot == InventorySlotEarthScroll && CurrentElement is EarthScroll)
+                {
+                    barrierHitDealtThisSwing = false;
+                    TriggerRockBarrierAnimation();
+                    CurrentElement?.PrimaryAttack(this);
+                    return;
+                }
+
                 swordHitDealtThisSwing = false;
                 TriggerSlashAnimation();
-                
                 CurrentElement?.PrimaryAttack(this);
             }
             if (e.Button == MouseButtons.Right)
-            { 
-                if (CanUseSecondaryAttack)
+            {
+                if (CanUseSecondaryAttack && !IsActionLocked)
                 {
                     TriggerSlashAnimation();
                     CurrentElement?.SecondaryAttack(this);
