@@ -16,7 +16,7 @@ namespace FadePlanet
         // --- DECLARE VARIABLES ---
         private UI gameUI;
         private Player player;
-        private Token airToken;
+        private Item airToken;
 
         private List<Enemy> enemies = new List<Enemy>();
 
@@ -48,7 +48,7 @@ namespace FadePlanet
             // --- INITIALIZE CLASSES ---
             gameUI = new UI();
             player = new Player(new Point(528, 248), new Size(224, 224));
-            airToken = new Token(new Point(700, 300), new Size(Token.DrawSize, Token.DrawSize));
+            airToken = new Item(new Point(700, 300), new Size(Item.DrawSize, Item.DrawSize), ItemType.Token, ElementType.Air);
 
             // --- SPAWN TEST ENEMIES ---
             SpawnEnemy(EnemyType.Air, new Point(200, 200));
@@ -189,11 +189,11 @@ namespace FadePlanet
 
                 if (!player.IsPlayingPickup && !player.IsPlayingSlash)
                 {
-                    float dx = (airToken.Position.X + Token.DrawSize / 2f) - (player.Position.X + 112f);
-                    float dy = (airToken.Position.Y + Token.DrawSize / 2f) - (player.Position.Y + 112f);
+                    float dx = (airToken.Position.X + Item.DrawSize / 2f) - (player.Position.X + 112f);
+                    float dy = (airToken.Position.Y + Item.DrawSize / 2f) - (player.Position.Y + 112f);
                     float distance = (float)Math.Sqrt(dx * dx + dy * dy);
 
-                    if (distance <= Token.PickupRange)
+                    if (distance <= Item.PickupRange)
                     {
                         GameManager.DespawnObject(airToken);
                         airToken = null;
@@ -205,6 +205,7 @@ namespace FadePlanet
             // 6. Sync UI
             gameUI.UpdateHealth(player.Health, player.MaxHealth);
             gameUI.UpdateStamina(player.Stamina, player.MaxStamina);
+            gameUI.UpdatePotionCount(player.PotionCount);
 
             // 7. Redraw
             this.Invalidate();

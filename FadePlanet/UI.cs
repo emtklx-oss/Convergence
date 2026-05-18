@@ -22,6 +22,8 @@ namespace FadePlanet
         public float MaxStamina { get; private set; } = 100f;
         public float CurrentStamina { get; private set; } = 100f;
 
+        public int PotionCount { get; private set; } = 0;
+
         // =========================
         //    INVENTORY SETTINGS
         // =========================
@@ -233,6 +235,11 @@ namespace FadePlanet
             MaxStamina = maxStamina;
         }
 
+        public void UpdatePotionCount(int potionCount)
+        {
+            PotionCount = Math.Max(0, potionCount);
+        }
+
         public (bool closingDone, bool openingDone) UpdateScrollAnimation()
         {
             bool closingDone = false;
@@ -386,6 +393,23 @@ namespace FadePlanet
             {
                 if (icons[i] == null) continue;
                 g.DrawImage(icons[i], new RectangleF(iconXs[i], iconYs[i], ItemIconSize, ItemIconSize));
+            }
+
+            // Draw potion count on top of potion icon (slot 6, index 5)
+            if (potionIcon != null && PotionCount > 0)
+            {
+                float potionIconX = iconXs[5];
+                float potionIconY = iconYs[5];
+
+                using (Font potionCountFont = new Font("Arial", 14, FontStyle.Bold))
+                using (Brush potionCountBrush = new SolidBrush(Color.White))
+                {
+                    string countText = PotionCount.ToString();
+                    SizeF textSize = g.MeasureString(countText, potionCountFont);
+                    float textX = potionIconX + ItemIconSize - textSize.Width - 4;
+                    float textY = potionIconY + ItemIconSize - textSize.Height - 4;
+                    g.DrawString(countText, potionCountFont, potionCountBrush, textX, textY);
+                }
             }
 
 

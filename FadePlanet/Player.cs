@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 using static FadePlanet.Abilities;
 
 namespace FadePlanet
@@ -37,8 +38,37 @@ namespace FadePlanet
         #endregion
 
         #region Player Inventory
-        private int TokenCount { get; set; } = 0;
-        private int PotionCount { get; set; } = 0;
+        public HashSet<ElementType> Tokens { get; set; } = new HashSet<ElementType>();
+        public int PotionCount { get; private set; } = 0;
+        public void PickUpItem(Item item)
+        {
+            switch (item.ItemType)
+            {
+                case ItemType.Token:
+                    AddToken(item.TokenType);
+                    break;
+                case ItemType.Potion:
+                    PotionCount++;
+                    break;
+            }
+        }
+        public void AddToken(ElementType element)
+        {
+            if (element == ElementType.None) return;
+
+            bool wasAdded = Tokens.Add(element);
+
+            if (wasAdded)
+            {
+                Console.WriteLine($"New token acquired: {element}!");
+            }
+        }
+
+        public bool HasToken(ElementType element)
+        {
+            return Tokens.Contains(element);
+        }
+        
         #endregion
 
         #region Player Abilities

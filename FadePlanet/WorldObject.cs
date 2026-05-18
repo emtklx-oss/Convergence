@@ -30,6 +30,7 @@ namespace FadePlanet
 
     public enum ElementType
     {
+        None,
         Water,
         Fire,
         Earth,
