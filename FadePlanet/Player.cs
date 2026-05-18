@@ -23,7 +23,6 @@ namespace FadePlanet
         // =====================================================================
         private const float SwordHitboxWidth = 140f;
         private const float SwordHitboxHeight = 100f;
-        private const float SwordHitboxOffsetX = 160f;
         private const float SwordHitboxOffsetY = 80f;
         private const int SwordDamage = 20;
         // =====================================================================
@@ -78,9 +77,11 @@ namespace FadePlanet
         {
             get
             {
+                // Mirror the right-side placement: body edge + 8px gap, then sword width
+                const float swordGap = 8f;
                 float offsetX = isFacingLeft
-                    ? -(SwordHitboxOffsetX + SwordHitboxWidth)
-                    : SwordHitboxOffsetX;
+                    ? HitboxOffsetX - swordGap - SwordHitboxWidth
+                    : HitboxOffsetX + HitboxWidth + swordGap;
 
                 return new RectangleF(
                     Position.X + offsetX,
@@ -345,16 +346,17 @@ namespace FadePlanet
 
         public void ApplyKnockback(PointF sourcePosition)
         {
-            float kDx = Position.X - sourcePosition.X;
-            float kDy = Position.Y - sourcePosition.Y;
-            float kLen = (float)Math.Sqrt(kDx * kDx + kDy * kDy);
-
-            knockbackDirection = kLen > 0
-                ? new PointF(kDx / kLen, kDy / kLen)
-                : new PointF(1f, 0f);
-
+            knockbackDirection = GetHorizontalDirection(Position.X - sourcePosition.X);
             knockbackRemaining = PlayerKnockbackDistance;
             isKnockedBack = true;
+        }
+
+        private static PointF GetHorizontalDirection(float deltaX)
+        {
+            if (Math.Abs(deltaX) < 0.01f)
+                return new PointF(1f, 0f);
+
+            return new PointF(Math.Sign(deltaX), 0f);
         }
 
         public PointF GetAttackDirection()

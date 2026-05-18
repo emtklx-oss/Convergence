@@ -78,16 +78,12 @@ namespace FadePlanet
                     // Check if enemy is within the current ripple radius
                     if (distanceToEnemy <= CurrentRadius && distanceToEnemy > (CurrentRadius - ExpandSpeed * 2))
                     {
-                        // Apply knockback
-                        float knockbackLen = (float)Math.Sqrt(dx * dx + dy * dy);
-                        PointF knockbackDir = knockbackLen > 0
-                            ? new PointF(dx / knockbackLen, dy / knockbackLen)
-                            : new PointF(1f, 0f);
+                        // Apply horizontal knockback away from ripple center
+                        float horizontalDir = Math.Abs(dx) < 0.01f ? 1f : Math.Sign(dx);
 
-                        // Push the enemy back
                         enemy.Position = new PointF(
-                            enemy.Position.X + knockbackDir.X * KnockbackDistance,
-                            enemy.Position.Y + knockbackDir.Y * KnockbackDistance
+                            enemy.Position.X + horizontalDir * KnockbackDistance,
+                            enemy.Position.Y
                         );
 
                         // Apply stun

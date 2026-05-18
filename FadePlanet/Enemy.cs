@@ -34,6 +34,7 @@ namespace FadePlanet
         private const float DetectionRadius = 300f;
         private const float AttackRadius = 150f; // Increased from 60f to keep distance
         private const float StoppingDistance = 120f; // Distance to stop and prepare leap
+        private const float PlayerSeparationBuffer = 6f; // Extra space kept from the player hitbox
         private const float HopHeight = 8f;
         private const float HopSpeed = 0.15f;
         private const float AttackJumpSpeed = 6f;
@@ -201,11 +202,15 @@ namespace FadePlanet
                     float len = (float)Math.Sqrt(dx * dx + dy * dy);
                     if (len > 0)
                     {
-                        Position = new PointF(
+                        PointF nextPosition = new PointF(
                             Position.X + (dx / len) * WalkSpeed,
                             Position.Y + (dy / len) * WalkSpeed
                         );
+
+                        if (!WouldOverlapPlayerHitbox(nextPosition, player))
+                            Position = nextPosition;
                     }
+
                     break;
 
                 case EnemyState.Attacking:
@@ -297,6 +302,10 @@ namespace FadePlanet
                     }
                     break;
             }
+
+            // Keep enemies out of the player's hurtbox except during an attack leap
+            if (State != EnemyState.Attacking)
+                ResolvePlayerOverlap(player);
         }
 
         private void UpdateAnimation(int frameCount)
@@ -315,6 +324,53 @@ namespace FadePlanet
             hopOffset = (float)Math.Abs(Math.Sin(hopTimer)) * -HopHeight;
         }
 
+        private bool WouldOverlapPlayerHitbox(PointF candidatePosition, Player player)
+        {
+            RectangleF candidateBounds = new RectangleF(candidatePosition, ObjSize);
+            RectangleF paddedPlayerHitbox = RectangleF.Inflate(player.Hitbox, PlayerSeparationBuffer, PlayerSeparationBuffer);
+            return candidateBounds.IntersectsWith(paddedPlayerHitbox);
+        }
+
+        private void ResolvePlayerOverlap(Player player)
+        {
+            RectangleF playerBox = RectangleF.Inflate(player.Hitbox, PlayerSeparationBuffer, PlayerSeparationBuffer);
+            RectangleF enemyBox = Bounds;
+
+            if (!enemyBox.IntersectsWith(playerBox))
+                return;
+
+            float overlapLeft = enemyBox.Right - playerBox.Left;
+            float overlapRight = playerBox.Right - enemyBox.Left;
+            float overlapTop = enemyBox.Bottom - playerBox.Top;
+            float overlapBottom = playerBox.Bottom - enemyBox.Top;
+
+            float pushX = 0f;
+            float pushY = 0f;
+
+            if (overlapLeft < overlapRight)
+                pushX = -overlapLeft;
+            else
+                pushX = overlapRight;
+
+            if (overlapTop < overlapBottom)
+                pushY = -overlapTop;
+            else
+                pushY = overlapBottom;
+
+            if (Math.Abs(pushX) < Math.Abs(pushY))
+                Position = new PointF(Position.X + pushX, Position.Y);
+            else
+                Position = new PointF(Position.X, Position.Y + pushY);
+        }
+
+        private static PointF GetHorizontalDirection(float deltaX)
+        {
+            if (Math.Abs(deltaX) < 0.01f)
+                return new PointF(1f, 0f);
+
+            return new PointF(Math.Sign(deltaX), 0f);
+        }
+
         // =====================================================================
         // DAMAGE & KNOCKBACK
         // =====================================================================
@@ -329,13 +385,7 @@ namespace FadePlanet
                 return;
             }
 
-            float kDx = Position.X - sourcePosition.X;
-            float kDy = Position.Y - sourcePosition.Y;
-            float kLen = (float)Math.Sqrt(kDx * kDx + kDy * kDy);
-
-            knockbackDirection = kLen > 0
-                ? new PointF(kDx / kLen, kDy / kLen)
-                : new PointF(1f, 0f);
+            knockbackDirection = GetHorizontalDirection(Position.X - sourcePosition.X);
 
             knockbackRemaining = EnemyKnockbackDistance;
             animFrame = 0;
