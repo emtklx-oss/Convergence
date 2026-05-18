@@ -68,7 +68,14 @@ namespace FadePlanet
         {
             return Tokens.Contains(element);
         }
-        
+        private void TryConsumePotion()
+        {
+            if (PotionCount > 0 && Health < MaxHealth)
+            {
+                PotionCount--;
+                Health += 10; //Replace with how much a health potion should recover
+            }
+        }
         #endregion
 
         #region Player Abilities
@@ -456,8 +463,11 @@ namespace FadePlanet
             if (e.KeyCode == Keys.D) isMovingRight = true;
 
             if (e.KeyCode == Keys.H) ShowHitbox = !ShowHitbox;
+            if (e.KeyCode == Keys.E) TryConsumePotion();
             if (e.KeyCode == Keys.J) TakeDamage(10);
         }
+
+        
 
         public void HandleKeyUp(KeyEventArgs e)
         {

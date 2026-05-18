@@ -16,7 +16,6 @@ namespace FadePlanet
         // --- DECLARE VARIABLES ---
         private UI gameUI;
         private Player player;
-        private Item airToken;
 
         private List<Enemy> enemies = new List<Enemy>();
 
@@ -48,7 +47,11 @@ namespace FadePlanet
             // --- INITIALIZE CLASSES ---
             gameUI = new UI();
             player = new Player(new Point(528, 248), new Size(224, 224));
-            airToken = new Item(new Point(700, 300), new Size(Item.DrawSize, Item.DrawSize), ItemType.Token, ElementType.Air);
+
+            // Create items through GameManager
+            Item airToken = new Item(new Point(700, 300), new Size(Item.DrawSize, Item.DrawSize), ItemType.Token, ElementType.Air);
+            Item potion = new Item(new Point(600, 250), new Size(Item.DrawSize, Item.DrawSize), ItemType.Potion);
+            
 
             // --- SPAWN TEST ENEMIES ---
             SpawnEnemy(EnemyType.Air, new Point(200, 200));
@@ -156,59 +159,75 @@ namespace FadePlanet
 
             foreach (Enemy en in enemies) { en.Update(player); }
 
-            GameManager.AllObjects.TryGetValue(ObjectType.Projectile, out var projs);
-            if (projs != null)
+            // 5. Update all projectiles
+            UpdateObjectType(ObjectType.Projectile, (obj) =>
             {
-                foreach (Projectile proj in projs.Values.ToList())
+                if (obj is Projectile proj)
                 {
                     proj.Update();
+                    // Remove projectiles that go off screen
                     if (proj.Position.X < -50 || proj.Position.X > ClientSize.Width + 50)
                     {
                         GameManager.DespawnObject(proj);
                     }
                 }
-            }
+            });
 
-            // Update ripples
-            if (GameManager.AllObjects.TryGetValue(ObjectType.None, out var ripples))
+            // 6. Update all ripples
+            UpdateObjectType(ObjectType.None, (obj) =>
             {
-                foreach (WorldObject ripple in ripples.Values.ToList())
+                if (obj is Ripple r)
                 {
-                    if (ripple is Ripple r)
+                    r.Update();
+                }
+            });
+
+            // 7. Update all items (tokens, potions, etc.)
+            UpdateObjectType(ObjectType.Item, (obj) =>
+            {
+                if (obj is Item item)
+                {
+                    item.Update();
+
+                    // Check for pickup
+                    if (!player.IsPlayingPickup && !player.IsPlayingSlash)
                     {
-                        r.Update();
+                        float dx = (item.Position.X + Item.DrawSize / 2f) - (player.Position.X + 112f);
+                        float dy = (item.Position.Y + Item.DrawSize / 2f) - (player.Position.Y + 112f);
+                        float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                        if (distance <= Item.PickupRange)
+                        {
+                            player.PickUpItem(item);
+                            GameManager.DespawnObject(item);
+
+                            if (item.ItemType == ItemType.Token)
+                            player.TriggerPickupAnimation();
+                        }
                     }
                 }
-            }
+            });
 
-
-            // 5. Token update and pickup check
-            if (airToken != null)
-            {
-                airToken.Update();
-
-                if (!player.IsPlayingPickup && !player.IsPlayingSlash)
-                {
-                    float dx = (airToken.Position.X + Item.DrawSize / 2f) - (player.Position.X + 112f);
-                    float dy = (airToken.Position.Y + Item.DrawSize / 2f) - (player.Position.Y + 112f);
-                    float distance = (float)Math.Sqrt(dx * dx + dy * dy);
-
-                    if (distance <= Item.PickupRange)
-                    {
-                        GameManager.DespawnObject(airToken);
-                        airToken = null;
-                        player.TriggerPickupAnimation();
-                    }
-                }
-            }
-
-            // 6. Sync UI
+            // 8. Sync UI
             gameUI.UpdateHealth(player.Health, player.MaxHealth);
             gameUI.UpdateStamina(player.Stamina, player.MaxStamina);
             gameUI.UpdatePotionCount(player.PotionCount);
 
-            // 7. Redraw
+            // 9. Redraw
             this.Invalidate();
+        }
+
+      
+        // Helper method to update all objects of a specific type from GameManager
+        private void UpdateObjectType(ObjectType type, Action<WorldObject> updateAction)
+        {
+            if (GameManager.AllObjects.TryGetValue(type, out var objectDict))
+            {
+                foreach (WorldObject obj in objectDict.Values.ToList())
+                {
+                    updateAction(obj);
+                }
+            }
         }
 
         // --- DRAW TO THE SCREEN ---
@@ -216,32 +235,24 @@ namespace FadePlanet
         {
             base.OnPaint(e);
 
-            airToken?.Draw(e.Graphics);
+            // Draw all items
+            DrawObjectType(e.Graphics, ObjectType.Item);
 
+            // Draw all enemies
             foreach (Enemy en in enemies)
                 en.Draw(e.Graphics);
 
-            GameManager.AllObjects.TryGetValue(ObjectType.Projectile, out var projs);
-            if (projs != null)
-            foreach (Projectile proj in projs?.Values ) 
-                proj.Draw(e.Graphics);
+            // Draw all projectiles
+            DrawObjectType(e.Graphics, ObjectType.Projectile);
 
-            // Draw ripples
-            GameManager.AllObjects.TryGetValue(ObjectType.None, out var ripples);
-            if (ripples != null)
-            {
-                foreach (WorldObject ripple in ripples.Values)
-                {
-                    if (ripple is Ripple r)
-                    {
-                        r.Draw(e.Graphics);
-                    }
-                }
-            }
+            // Draw all ripples
+            DrawObjectType(e.Graphics, ObjectType.None, (obj) => obj is Ripple);
 
+            // Draw player and hitbox
             player.Draw(e.Graphics);
             player.DrawHitbox(e.Graphics);
 
+            // Draw UI
             if (healthGraphic != null && healthBar != null && staminaGraphic != null && staminaBar != null && inventorySlots != null)
             {
                 gameUI.DrawWinFormsUI(
@@ -254,6 +265,21 @@ namespace FadePlanet
                     this.ClientSize.Width,
                     this.ClientSize.Height
                 );
+            }
+        }
+
+        // Helper method to draw all objects of a specific type from GameManager
+        private void DrawObjectType(Graphics g, ObjectType type, Func<WorldObject, bool> filter = null)
+        {
+            if (GameManager.AllObjects.TryGetValue(type, out var objectDict))
+            {
+                foreach (WorldObject obj in objectDict.Values)
+                {
+                    if (filter == null || filter(obj))
+                    {
+                        obj.Draw(g);
+                    }
+                }
             }
         }
     }

@@ -60,7 +60,7 @@ namespace FadePlanet
                 {
                     case ItemType.Potion:
                         ItemImage = Image.FromFile(
-                            Path.Combine(GetProjectRoot(), @"Graphics\Items\Potion.png")
+                            Path.Combine(GetProjectRoot(), @"Graphics\Items\HealthPotion.png")
                         );
                         break;
                     case ItemType.Token:
