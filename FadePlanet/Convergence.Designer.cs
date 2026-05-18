@@ -37,7 +37,7 @@
             this.ClientSize = new System.Drawing.Size(800, 450);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "Convergence";
-            this.Text = "Convergence";
+            this.Text = "Form1";
             this.Load += new System.EventHandler(this.Convergence_Load);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Convergence_MouseClick);
             this.ResumeLayout(false);
