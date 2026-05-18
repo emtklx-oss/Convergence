@@ -16,7 +16,8 @@ namespace FadePlanet
         Friendly,
         Player,
         Item,
-        Projectile
+        Projectile,
+        ActivationPoint
     }
 
     public enum ObjectState

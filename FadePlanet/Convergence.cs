@@ -18,6 +18,9 @@ namespace FadePlanet
         private Player player;
 
         private List<Enemy> enemies = new List<Enemy>();
+        private List<ActivationPoint> activationPoints = new List<ActivationPoint>();
+        private ActivationPoint nearbyActivationPoint;
+        private Puzzles activePuzzleForm;
 
         // UI Images
         private Image healthGraphic;
@@ -47,6 +50,9 @@ namespace FadePlanet
             // --- INITIALIZE CLASSES ---
             gameUI = new UI();
             player = new Player(new Point(528, 248), new Size(224, 224));
+
+            ActivationPoint airActivation = new ActivationPoint(new PointF(40, 380), ElementType.Air);
+            activationPoints.Add(airActivation);
 
             // Create items
             Item airToken = new Item(new Point(700, 300), new Size(Item.DrawSize, Item.DrawSize), ItemType.Token, ElementType.Air);
@@ -116,6 +122,43 @@ namespace FadePlanet
             if (e.KeyCode == Keys.D6) gameUI.SetSelectedSlot(6, false);
 
             player.HandleKeyDown(e);
+
+            if (e.KeyCode == Keys.E)
+                TryInteractWithActivationPoint();
+        }
+
+        private void TryInteractWithActivationPoint()
+        {
+            if (activePuzzleForm != null) return;
+
+            ActivationPoint target = nearbyActivationPoint;
+            if (target == null || !target.PlayerInRange) return;
+
+            target.OnInteract(player);
+            OpenPuzzleForm(target.Element);
+        }
+
+        private void OpenPuzzleForm(ElementType element)
+        {
+            gameLoop.Stop();
+
+            activePuzzleForm = new Puzzles(element);
+            activePuzzleForm.FormClosed += PuzzleForm_Closed;
+            activePuzzleForm.PuzzleCompleted += () =>
+            {
+                // Placeholder for future rewards / progression hooks.
+            };
+
+            Hide();
+            activePuzzleForm.Show();
+        }
+
+        private void PuzzleForm_Closed(object sender, FormClosedEventArgs e)
+        {
+            activePuzzleForm = null;
+            Show();
+            gameLoop.Start();
+            Focus();
         }
         private void Convergence_KeyUp(object sender, KeyEventArgs e)
         {
@@ -180,7 +223,16 @@ namespace FadePlanet
                 }
             });
 
-            // 7. Update all items (tokens, potions, etc.)
+            // 7. Update activation points
+            nearbyActivationPoint = null;
+            foreach (ActivationPoint point in activationPoints)
+            {
+                point.UpdateProximity(player);
+                if (point.PlayerInRange)
+                    nearbyActivationPoint = point;
+            }
+
+            // 8. Update all items (tokens, potions, etc.)
             UpdateObjectType(ObjectType.Item, (obj) =>
             {
                 if (obj is Item item)
@@ -206,12 +258,12 @@ namespace FadePlanet
                 }
             });
 
-            // 8. Sync UI
+            // 9. Sync UI
             gameUI.UpdateHealth(player.Health, player.MaxHealth);
             gameUI.UpdateStamina(player.Stamina, player.MaxStamina);
             gameUI.UpdatePotionCount(player.PotionCount);
 
-            // 9. Redraw
+            // 10. Redraw
             this.Invalidate();
         }
 
@@ -235,6 +287,9 @@ namespace FadePlanet
 
             // Draw all items
             DrawObjectType(e.Graphics, ObjectType.Item);
+
+            foreach (ActivationPoint point in activationPoints)
+                point.Draw(e.Graphics);
 
             // Draw all enemies
             foreach (Enemy en in enemies)
