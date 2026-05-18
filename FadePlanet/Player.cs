@@ -34,6 +34,8 @@ namespace FadePlanet
         // =====================================================================
         // STAMINA SETTINGS — tweak these to balance earth attack usage
         // =====================================================================
+        private const float FireballStaminaCost = 5f;
+        private const float WaterRippleStaminaCost = 20f;
         private const float RockBarrierStaminaCost = 25f;
         private const float StaminaRegenPerSecond = 10f;
         private const float GameLoopDeltaSeconds = 0.016f; // matches 16ms timer in Convergence
@@ -50,7 +52,7 @@ namespace FadePlanet
         public float Stamina { get; private set; } = 100f;
         public float MaxStamina { get; private set; } = 100f;
 
-        public bool CanUseRockBarrier => Stamina >= RockBarrierStaminaCost;
+        
         #endregion
 
         #region Player Inventory
@@ -80,18 +82,8 @@ namespace FadePlanet
             }
         }
 
-        public bool HasToken(ElementType element)
-        {
-            return Tokens.Contains(element);
-        }
-        private void TryConsumePotion()
-        {
-            if (PotionCount > 0 && Health < MaxHealth)
-            {
-                PotionCount--;
-                Health = Math.Min(MaxHealth, Health + HealAmount); // ensure capped
-            }
-        }
+        public bool HasToken(ElementType element) { return Tokens.Contains(element); }
+        
         #endregion
 
         #region Player Abilities
@@ -105,6 +97,9 @@ namespace FadePlanet
             { Keys.D3, new EarthScroll() },
             { Keys.D4, new AirScroll() }
         };
+        public bool CanUseRockBarrier => Stamina >= RockBarrierStaminaCost;
+        public bool CanUseWaterRipple => Stamina >= WaterRippleStaminaCost;
+        public bool CanUseFireball => Stamina >= FireballStaminaCost;
 
         public bool ScrollSwitchLocked { get; set; } = false;
         #endregion
@@ -613,6 +608,7 @@ namespace FadePlanet
             g.DrawImage(sheet, destRect, srcRect, GraphicsUnit.Pixel);
         }
 
+        #region Stat Functions
         private void ApplyHeal()
         {
             if (PotionCount <= 0) return;
@@ -660,7 +656,7 @@ namespace FadePlanet
             if (e.KeyCode == Keys.D) isMovingRight = true;
 
             if (e.KeyCode == Keys.H) ShowHitbox = !ShowHitbox;
-            if (e.KeyCode == Keys.E) TryConsumePotion();
+          
             if (e.KeyCode == Keys.J) TakeDamage(10);
         }
 
@@ -678,7 +674,7 @@ namespace FadePlanet
             {
                 if (selectedSlot == InventorySlotPotion)
                 {
-                    TryConsumePotion();
+                    ApplyHeal();
                     TriggerHealAnimation();
                     return;
                 }
@@ -748,11 +744,6 @@ namespace FadePlanet
         public new void OnDeath() { }
         #endregion
 
-        #region Testing
-        public void TestTakeDamage(int amount)
-        {
-            TakeDamage(amount);
-        }
-        #endregion
+        
     }
 }
