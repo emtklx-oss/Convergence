@@ -47,7 +47,7 @@ namespace FadePlanet
 
             SetPlayer(new Player(new Point(528, 248), new Size(224, 224)));
 
-            new OldMan(new Point(400, 400), new Size(280, 280));
+            new OldMan(new Point(400, 200), new Size(280, 280));
 
             // Create items
             new Item(new Point(700, 300), new Size(Item.DrawSize, Item.DrawSize), ItemType.Token, ElementType.Air);
@@ -219,7 +219,20 @@ namespace FadePlanet
                         float dy = (man.Position.Y + man.ObjSize.Height / 2f) - (CurPlayer.Position.Y + 112f);
                         float distance = (float)Math.Sqrt(dx * dx + dy * dy);
 
-                        if (distance <= OldMan.InteractDistance) { man.OnInteract(CurPlayer); }
+                        if (distance <= OldMan.InteractDistance)
+                        {
+                            if (!man.IsInteracting && !man.HasInteracted)
+                            {
+                                man.HasInteracted = true;
+                                man.OnInteract(CurPlayer);
+                            }
+                        }
+                        else
+                        {
+                            //Player is outside radius so now the pop up can
+                            //reopen if they choose to return to Old man
+                            man.HasInteracted = false;
+                        }
                     }
                 }
             });

@@ -14,7 +14,10 @@ namespace FadePlanet
         public const float InteractDistance = 100f;
         private bool firstInteraction = true;
         private Image ManImage;
+        public bool IsInteracting { get; private set; } = false; //Prevent multiple windows popping up
+        public bool HasInteracted { get; set; } = false; //prevent window from reopening after player exits
 
+        
         private DialogForm DialogWindow;
         
         public OldMan(PointF pos, SizeF size, ObjectType type = ObjectType.Friendly) : base(pos, size, type)
@@ -36,6 +39,8 @@ namespace FadePlanet
         }
         public override void OnInteract(Player player)
         {
+            IsInteracting = true;
+            GameManager.CurPlayer.SetMovementState(false);
 
             if (firstInteraction)
             {
@@ -46,6 +51,9 @@ namespace FadePlanet
             {
                 ShowMenu();
             }
+
+            
+            GameManager.CurPlayer.SetMovementState(true);
         }
         public override void Draw(Graphics g)
         {
@@ -78,10 +86,14 @@ namespace FadePlanet
                 "3. MANAGING STAMINA\n" +
                 "Each ability costs stamina. Rest to regenerate it.\n\n" +
                 "4. CURRENCY & POTIONS\n" +
-                "Defeat enemies to earn currency. Use it at my shop to buy healing potions.\n\n" +
-                "Good luck on your journey!";
+                "Defeat enemies to earn currency. Use it at my shop to buy healing potions.";
+                
 
             DialogResult result = MessageBox.Show(tutorialText, "Tutorial - Welcome", MessageBoxButtons.OK);
+            if (result == DialogResult.OK)
+            {
+                ShowMenu();
+            }
         }
 
         private void ShowMenu()
@@ -89,7 +101,7 @@ namespace FadePlanet
 
             string menuText = "Greetings again, traveler!\n\nWhat can I help you with?";
 
-            using (DialogWindow = new DialogForm("Old Man", menuText, "Tutorial", "Shop", "Nevermind"))
+            using (DialogWindow = new DialogForm(menuText,"Old Man", "Tutorial", "Shop", "Nevermind"))
             {
                 DialogWindow.ShowDialog();
 
@@ -105,6 +117,8 @@ namespace FadePlanet
                         break;
                     case "Nevermind":
                         //Close form
+                        IsInteracting = false;
+                        GameManager.CurPlayer.SetMovementState(true);
                         DialogWindow.Close();
                         break;
                 }
@@ -122,7 +136,11 @@ namespace FadePlanet
                 "• Use your currency to buy potions from my shop\n\n" +
                 "Good luck out there!";
 
-            MessageBox.Show(tutorialText, "Tutorial Reminder", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            DialogResult result = MessageBox.Show(tutorialText, "Tutorial Reminder", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (result == DialogResult.OK)
+            {
+                ShowMenu();
+            }
         }
 
         private void ShowShop()
@@ -131,7 +149,7 @@ namespace FadePlanet
                 "I sell healing potions for 10 currency each.\n" +
                 "(Shop functionality coming soon...)";
 
-            using (DialogWindow = new DialogForm("Old Man's Shop", shopText, "Buy Potion - $10", "Nevermind"))
+            using (DialogWindow = new DialogForm("Old Man's Shop", shopText, "Potion - $10", "Nevermind"))
             {
                 DialogWindow.ShowDialog();
 
@@ -139,7 +157,7 @@ namespace FadePlanet
 
                 switch(selectedButton)
                 {
-                    case "Buy Potion - $10":
+                    case "Potion - $10":
                         if (GameManager.CurPlayer.Currency >= 10)
                         {
                             GameManager.CurPlayer.AddCurrency(-10); //Takes 10
@@ -157,6 +175,8 @@ namespace FadePlanet
                         ShowMenu();
                         break;
                 }
+
+                
             }
         }
     }

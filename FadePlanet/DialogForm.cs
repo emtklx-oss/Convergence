@@ -52,31 +52,41 @@ namespace FadePlanet
 
         private void InitializeComponent()
         {
-            labelMessage = new Label();
+            this.labelMessage = new System.Windows.Forms.Label();
             this.SuspendLayout();
-
+            // 
             // labelMessage
-            labelMessage.AutoSize = false;
-            labelMessage.Dock = DockStyle.Top;
-            labelMessage.Font = new Font("Segoe UI", 10F);
-            labelMessage.Padding = new Padding(20, 20, 20, 0);
-            labelMessage.Text = "";
-            labelMessage.Height = 100;
-            labelMessage.TextAlign = ContentAlignment.TopLeft;
-
+            // 
+            this.labelMessage.AutoSize = true;
+            this.labelMessage.Dock = System.Windows.Forms.DockStyle.Top;
+            this.labelMessage.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.labelMessage.Location = new System.Drawing.Point(0, 0);
+            this.labelMessage.Name = "labelMessage";
+            this.labelMessage.Padding = new System.Windows.Forms.Padding(20, 20, 20, 0);
+            this.labelMessage.Size = new System.Drawing.Size(40, 39);
+            this.labelMessage.TabIndex = 0;
+            this.labelMessage.Click += new System.EventHandler(this.labelMessage_Click);
+            // 
             // DialogForm
-            this.AutoScaleDimensions = new SizeF(6F, 13F);
-            this.AutoScaleMode = AutoScaleMode.Font;
-            this.ClientSize = new Size(400, 150);
-            this.Controls.Add(labelMessage);
-            this.Font = new Font("Segoe UI", 9F);
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(400, 150);
+            this.Controls.Add(this.labelMessage);
+            this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.Name = "DialogForm";
             this.ShowIcon = false;
             this.ShowInTaskbar = false;
             this.ResumeLayout(false);
+            this.PerformLayout();
+
         }
 
         private Label labelMessage;
-        
+
+        private void labelMessage_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

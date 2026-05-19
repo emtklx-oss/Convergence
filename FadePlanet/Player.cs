@@ -270,7 +270,20 @@ namespace FadePlanet
         private int frameCounter = 0;
         private int idleAnimationSpeed = 30;
         private bool isIdle1 = true;
+        private bool CanMove = true;
 
+        public void SetMovementState(bool canMove)
+        {
+            CanMove = canMove;
+
+            if (!CanMove)
+            {
+                isMovingUp = false;
+                isMovingDown = false;
+                isMovingLeft = false;
+                isMovingRight = false;
+            }
+        }
         private bool isMovingUp, isMovingDown, isMovingLeft, isMovingRight;
 
         private string GetProjectRoot()
@@ -656,10 +669,14 @@ namespace FadePlanet
         #region Input
         public void HandleKeyDown(KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.W) isMovingUp = true;
-            if (e.KeyCode == Keys.S) isMovingDown = true;
-            if (e.KeyCode == Keys.A) isMovingLeft = true;
-            if (e.KeyCode == Keys.D) isMovingRight = true;
+            if (CanMove)
+            {
+                if (e.KeyCode == Keys.W) isMovingUp = true;
+                if (e.KeyCode == Keys.S) isMovingDown = true;
+                if (e.KeyCode == Keys.A) isMovingLeft = true;
+                if (e.KeyCode == Keys.D) isMovingRight = true;
+            }
+            
 
             if (e.KeyCode == Keys.H) ShowHitbox = !ShowHitbox;
           
