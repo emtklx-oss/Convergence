@@ -52,7 +52,8 @@ namespace FadePlanet
 
         #region Player Inventory
         public HashSet<ElementType> Tokens { get; set; } = new HashSet<ElementType>();
-        public int PotionCount { get; private set; } = 0;
+        public int Potions { get; private set; } = 0;
+        public int Currency { get; private set; } = 0;
         public void PickUpItem(Item item)
         {
             switch (item.ItemType)
@@ -61,7 +62,7 @@ namespace FadePlanet
                     AddToken(item.TokenType);
                     break;
                 case ItemType.Potion:
-                    PotionCount++;
+                    Potions++;
                     break;
             }
         }
@@ -335,7 +336,7 @@ namespace FadePlanet
         }
         public void TriggerHealAnimation()
         {
-            if (IsActionLocked || PotionCount <= 0) return;
+            if (IsActionLocked || Potions <= 0) return;
 
             IsPlayingHeal = true;
             healFrameIndex = 0;
@@ -603,9 +604,9 @@ namespace FadePlanet
         #region Stat Functions
         private void ApplyHeal()
         {
-            if (PotionCount <= 0) return;
+            if (Potions <= 0) return;
 
-            PotionCount--;
+            Potions--;
             Health = Math.Min(MaxHealth, Health + HealAmount);
         }
 

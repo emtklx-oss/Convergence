@@ -227,7 +227,8 @@ namespace FadePlanet
             // 8. Sync UI
             gameUI.UpdateHealth(CurPlayer.Health, CurPlayer.MaxHealth);
             gameUI.UpdateStamina(CurPlayer.Stamina, CurPlayer.MaxStamina);
-            gameUI.UpdatePotionCount(CurPlayer.PotionCount);
+            gameUI.UpdatePotionCount(CurPlayer.Potions);
+            gameUI.UpdateCurrency(CurPlayer.Currency);
 
             // 9. Redraw
             this.Invalidate();

@@ -6,7 +6,7 @@ namespace FadePlanet
 {
     public partial class DialogForm : Form
     {
-        public DialogResult DialogResult { get; set; }
+        public new DialogResult DialogResult { get; set; }
 
         public DialogForm(string title, string message, params string[] buttonLabels)
         {
@@ -19,10 +19,7 @@ namespace FadePlanet
             this.MinimizeBox = false;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
 
-            // Remove default buttons
-            this.Controls.Remove(button1);
-            this.Controls.Remove(button2);
-            this.Controls.Remove(button3);
+            this.Controls.Clear(); // Clear existing controls to add new ones based on parameters
 
             // Create buttons based on labels provided
             int buttonCount = buttonLabels.Length;
@@ -80,8 +77,6 @@ namespace FadePlanet
         }
 
         private Label labelMessage;
-        private Button button1;
-        private Button button2;
-        private Button button3;
+        
     }
 }

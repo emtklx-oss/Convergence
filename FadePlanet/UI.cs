@@ -23,6 +23,7 @@ namespace FadePlanet
         public float CurrentStamina { get; private set; } = 100f;
 
         public int PotionCount { get; private set; } = 0;
+        public int CurrencyCount { get; private set; } = 0;
 
         // =========================
         //    INVENTORY SETTINGS
@@ -52,6 +53,7 @@ namespace FadePlanet
         private const float Slot4X = 179f; private const float Slot4Y = 16f;  // Air Scroll
         private const float Slot5X = 238f; private const float Slot5Y = 16f;  // Sword
         private const float Slot6X = 290f; private const float Slot6Y = 16f;  // Potion
+        private const float Slot7X = 350f; private const float Slot7Y = 16f;  // Currency 
         // -----------------------------------------------------------------------
 
         private const int SlotCount = 6;
@@ -103,6 +105,7 @@ namespace FadePlanet
         private Bitmap airScrollIcon;
         private Image swordIcon;
         private Image potionIcon;
+        private Image currencyIcon;
 
         // Scroll animation state
         private enum ScrollAnimState { Idle, Closing, Opening }
@@ -151,6 +154,7 @@ namespace FadePlanet
             {
                 swordIcon = Image.FromFile(Path.Combine(projectRoot, @"Graphics\Items\ElementSword.png"));
                 potionIcon = Image.FromFile(Path.Combine(projectRoot, @"Graphics\Items\HealthPotion.png"));
+                currencyIcon = Image.FromFile(Path.Combine(projectRoot, @"Graphics\UI\Currency.png"));
             }
             catch (Exception ex)
             {
@@ -245,6 +249,10 @@ namespace FadePlanet
         public void UpdatePotionCount(int potionCount)
         {
             PotionCount = Math.Max(0, potionCount);
+        }
+        public void UpdateCurrency(int currencyCount)
+        {
+            CurrencyCount = Math.Max(0, currencyCount);
         }
 
         public (bool closingDone, bool openingDone) UpdateScrollAnimation()
@@ -374,6 +382,7 @@ namespace FadePlanet
                 inventoryX + Slot4X,
                 inventoryX + Slot5X,
                 inventoryX + Slot6X,
+                inventoryX + Slot7X
             };
 
             float[] iconYs = new float[]
@@ -394,6 +403,7 @@ namespace FadePlanet
                 airScrollIcon,
                 swordIcon,
                 potionIcon,
+                currencyIcon
             };
 
             for (int i = 0; i < SlotCount; i++)
