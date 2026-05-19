@@ -47,7 +47,7 @@ namespace FadePlanet
 
             SetPlayer(new Player(new Point(528, 248), new Size(224, 224)));
 
-            new OldMan(new Point(100, 100), new Size(224, 224));
+            new OldMan(new Point(400, 400), new Size(280, 280));
 
             // Create items
             new Item(new Point(700, 300), new Size(Item.DrawSize, Item.DrawSize), ItemType.Token, ElementType.Air);
@@ -259,7 +259,7 @@ namespace FadePlanet
             CurPlayer?.DrawHitbox(e.Graphics);
 
 
-
+            DrawObjectType(e.Graphics, ObjectType.Friendly, (obj) => obj is OldMan);
 
             // Draw UI
             if (healthGraphic != null && healthBar != null && staminaGraphic != null && staminaBar != null && inventorySlots != null)

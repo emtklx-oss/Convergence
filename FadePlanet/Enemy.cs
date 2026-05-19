@@ -402,6 +402,7 @@ namespace FadePlanet
 
         public new void OnDeath()
         {
+            GameManager.CurPlayer.AddCurrency(1);
             GameManager.DespawnObject(this);
         }
 

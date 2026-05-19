@@ -53,10 +53,10 @@ namespace FadePlanet
         private const float Slot4X = 179f; private const float Slot4Y = 16f;  // Air Scroll
         private const float Slot5X = 238f; private const float Slot5Y = 16f;  // Sword
         private const float Slot6X = 290f; private const float Slot6Y = 16f;  // Potion
-        private const float Slot7X = 350f; private const float Slot7Y = 16f;  // Currency 
+        private const float Slot7X = 347f; private const float Slot7Y = 16f;  // Currency 
         // -----------------------------------------------------------------------
 
-        private const int SlotCount = 6;
+        private const int SlotCount = 6; // 7th is currency, doesnt need to be selected
 
         // =========================
         //    HIGHLIGHT BOX SETTINGS
@@ -311,6 +311,8 @@ namespace FadePlanet
             float healthPercent = CurrentHealth / MaxHealth;
             float staminaPercent = CurrentStamina / MaxStamina;
 
+            Font countFont = new Font("Arial", 14, FontStyle.Bold); // Font used for counts on potions and currency
+            Brush countBrush = new SolidBrush(Color.White);
 
 
             // =========================
@@ -393,6 +395,7 @@ namespace FadePlanet
                 inventoryY + Slot4Y,
                 inventoryY + Slot5Y,
                 inventoryY + Slot6Y,
+                inventoryY + Slot7Y
             };
 
             Image[] icons = new Image[]
@@ -406,7 +409,7 @@ namespace FadePlanet
                 currencyIcon
             };
 
-            for (int i = 0; i < SlotCount; i++)
+            for (int i = 0; i < SlotCount + 1; i++) // + 1 is the 7th slot unable to be selected
             {
                 if (icons[i] == null) continue;
                 g.DrawImage(icons[i], new RectangleF(iconXs[i], iconYs[i], ItemIconSize, ItemIconSize));
@@ -417,19 +420,27 @@ namespace FadePlanet
             {
                 float potionIconX = iconXs[5];
                 float potionIconY = iconYs[5];
-
-                using (Font potionCountFont = new Font("Arial", 14, FontStyle.Bold))
-                using (Brush potionCountBrush = new SolidBrush(Color.White))
-                {
-                    string countText = PotionCount.ToString();
-                    SizeF textSize = g.MeasureString(countText, potionCountFont);
-                    float textX = potionIconX + ItemIconSize - textSize.Width;
-                    float textY = potionIconY + ItemIconSize - textSize.Height;
-                    g.DrawString(countText, potionCountFont, potionCountBrush, textX, textY);
-                }
+                
+                string countText = PotionCount.ToString();
+                SizeF textSize = g.MeasureString(countText, countFont);
+                float textX = potionIconX + ItemIconSize - textSize.Width;
+                float textY = potionIconY + ItemIconSize - textSize.Height;
+                g.DrawString(countText, countFont, countBrush, textX, textY);
+                
             }
+            // Draw currency count on top of Currency icon (slot 7, index 6)
+            if (currencyIcon != null && CurrencyCount >= 0)
+            {
+                float currencyIconX = iconXs[6];
+                float currencyIconY = iconYs[6];
 
-
+                string countText = PotionCount.ToString();
+                SizeF textSize = g.MeasureString(countText, countFont);
+                float textX = currencyIconX + ItemIconSize - textSize.Width;
+                float textY = currencyIconY + ItemIconSize - textSize.Height;
+                g.DrawString(countText, countFont, countBrush, textX, textY);
+                
+            }
 
             // =========================
             //    HIGHLIGHT BOX

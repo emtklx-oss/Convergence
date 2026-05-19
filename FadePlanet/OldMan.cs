@@ -14,6 +14,9 @@ namespace FadePlanet
         public const float InteractDistance = 100f;
         private bool firstInteraction = true;
         private Image ManImage;
+
+        private DialogForm DialogWindow;
+        
         public OldMan(PointF pos, SizeF size, ObjectType type = ObjectType.Friendly) : base(pos, size, type)
         {
             LoadImage();
@@ -33,6 +36,7 @@ namespace FadePlanet
         }
         public override void OnInteract(Player player)
         {
+
             if (firstInteraction)
             {
                 ShowTutorial();
@@ -85,11 +89,11 @@ namespace FadePlanet
 
             string menuText = "Greetings again, traveler!\n\nWhat can I help you with?";
 
-            using (DialogForm dialog = new DialogForm("Old Man", menuText, "Tutorial", "Shop", "Nevermind"))
+            using (DialogWindow = new DialogForm("Old Man", menuText, "Tutorial", "Shop", "Nevermind"))
             {
-                dialog.ShowDialog();
+                DialogWindow.ShowDialog();
 
-                string selectedButton = (string)dialog.Tag;
+                string selectedButton = (string)DialogWindow.Tag;
 
                 switch (selectedButton)
                 {
@@ -101,7 +105,7 @@ namespace FadePlanet
                         break;
                     case "Nevermind":
                         //Close form
-                        dialog.Close();
+                        DialogWindow.Close();
                         break;
                 }
             }
@@ -127,20 +131,30 @@ namespace FadePlanet
                 "I sell healing potions for 10 currency each.\n" +
                 "(Shop functionality coming soon...)";
 
-            using (DialogForm dialog = new DialogForm("Old Man's Shop", shopText, "Buy Potion - $10", "Nevermind"))
+            using (DialogWindow = new DialogForm("Old Man's Shop", shopText, "Buy Potion - $10", "Nevermind"))
             {
-                dialog.ShowDialog();
+                DialogWindow.ShowDialog();
 
-                string selectedButton = (string)dialog.Tag;
+                string selectedButton = (string)DialogWindow.Tag;
 
                 switch(selectedButton)
                 {
                     case "Buy Potion - $10":
-                        MessageBox.Show("Shop functionality coming soon!", "Shop", MessageBoxButtons.OK);
+                        if (GameManager.CurPlayer.Currency >= 10)
+                        {
+                            GameManager.CurPlayer.AddCurrency(-10); //Takes 10
+                            GameManager.CurPlayer.AddPotions(1);
+                            MessageBox.Show("Thank you for your purchase!", "Purchase confirmed", MessageBoxButtons.OK);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Don't try that again...", "Purchase failed - Your too poor!", MessageBoxButtons.OK);
+                        }
+                        
                         break;
                     case "Nevermind":
-                        // Close form
-                        dialog.Close();
+                        // Return to menu
+                        ShowMenu();
                         break;
                 }
             }

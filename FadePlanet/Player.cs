@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -54,6 +55,8 @@ namespace FadePlanet
         public HashSet<ElementType> Tokens { get; set; } = new HashSet<ElementType>();
         public int Potions { get; private set; } = 0;
         public int Currency { get; private set; } = 0;
+        public void AddCurrency(int amount) { Currency += amount; }
+        public void AddPotions(int amount) { Potions += amount; }
         public void PickUpItem(Item item)
         {
             switch (item.ItemType)
