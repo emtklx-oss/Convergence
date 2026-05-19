@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace FadePlanet
 {
@@ -13,9 +14,10 @@ namespace FadePlanet
     {
         public static void LoadRoom()
         {
-            Player = new Player(new Point(528, 248), new Size(224, 224));
+            CurPlayer = new Player(new Point(528, 248), new Size(224, 224));
         }
-        public static Player Player {  get; private set; }
+        public static Player CurPlayer { get; private set; }
+        public static void SetPlayer(Player plr) { CurPlayer = plr;  }
         #region Object Management
 
         private static readonly Dictionary<ObjectType, Dictionary<int, WorldObject>> RoomObjects = new Dictionary<ObjectType, Dictionary<int, WorldObject>>();
@@ -80,6 +82,51 @@ namespace FadePlanet
             if (RoomObjects.TryGetValue(obj.Type, out var categoryDict))
             {
                 categoryDict.Remove(obj.Id);
+            }
+        }
+
+        #endregion
+
+        #region Object Updates & Rendering
+
+        
+        // Retrieves all objects of a specific type from GameManager.
+        // Returns a list of objects for direct modification or querying.
+        public static List<WorldObject> GetObjectsByType(ObjectType type)
+        {
+            if (RoomObjects.TryGetValue(type, out var objectDict))
+            {
+                return objectDict.Values.ToList();
+            }
+            return new List<WorldObject>();
+        }
+
+        //Updates all objects of a specific type from GameManager with the provided action.
+        public static void UpdateObjectType(ObjectType type, Action<WorldObject> updateAction)
+        {
+            if (RoomObjects.TryGetValue(type, out var objectDict))
+            {
+                foreach (WorldObject obj in objectDict.Values.ToList())
+                {
+                    updateAction(obj);
+                }
+            }
+        }
+
+
+        // Draws all objects of a specific type from GameManager.
+        // Optionally filters objects using a predicate.
+        public static void DrawObjectType(Graphics g, ObjectType type, Func<WorldObject, bool> filter = null)
+        {
+            if (RoomObjects.TryGetValue(type, out var objectDict))
+            {
+                foreach (WorldObject obj in objectDict.Values)
+                {
+                    if (filter == null || filter(obj))
+                    {
+                        obj.Draw(g);
+                    }
+                }
             }
         }
 

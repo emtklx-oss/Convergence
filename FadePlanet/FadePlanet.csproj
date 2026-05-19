@@ -47,6 +47,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abilities.cs" />
+    <Compile Include="DialogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Enemy.cs" />
     <Compile Include="Convergence.cs">
       <SubType>Form</SubType>
@@ -56,6 +59,7 @@
     </Compile>
     <Compile Include="GameManager.cs" />
     <Compile Include="Item.cs" />
+    <Compile Include="OldMan.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Projectile.cs" />

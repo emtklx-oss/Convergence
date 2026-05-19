@@ -12,21 +12,44 @@ namespace FadePlanet
         public interface IElement
         {
             ElementType Type { get; }
-            float StaminaCost  { get; }
-            void PrimaryAttack(Player player);
-            
+            float StaminaCost { get; }
+            float CooldownMs { get; }
+            float CooldownRemaining { get; set; }
+            bool PrimaryAttack(Player player);
+            void UpdateCooldown(float deltaTimeMs);
+
         }
 
-        public class FireScroll : IElement
+        public abstract class ScrollBase : IElement
         {
-            public ElementType Type => ElementType.Fire;
-            public float StaminaCost { get; } = 5f;
-            public void PrimaryAttack(Player player)
+            public abstract ElementType Type { get; }
+            public abstract float StaminaCost { get; }
+            public abstract float CooldownMs { get; }
+            public float CooldownRemaining { get; set; } = 0f;
+
+            public abstract bool PrimaryAttack(Player player);
+
+            public virtual void UpdateCooldown(float deltaTimeMs)
             {
-                if (!player.CanUseAbility(StaminaCost)) return;
+                if (CooldownRemaining > 0)
+                {
+                    CooldownRemaining = Math.Max(0, CooldownRemaining - deltaTimeMs);
+                }
+            }
+        }
+
+        public class FireScroll : ScrollBase
+        {
+            public override ElementType Type => ElementType.Fire;
+            public override float StaminaCost => 5f;
+            public override float CooldownMs => 500f; // 0.5 second cooldown
+
+            public override bool PrimaryAttack(Player player)
+            {
                 player.UseStamina(StaminaCost);
                 ShootFireball(player);
                 Console.WriteLine($"Primary attack of type: {Type}");
+                return true;
             }
             
             public void ShootFireball(Player player)
@@ -46,17 +69,18 @@ namespace FadePlanet
                 new Projectile(new PointF(posX, posY), new SizeF(32, 32), ElementType.Fire, dir);
             }
         }
-        public class WaterScroll : IElement
+        public class WaterScroll : ScrollBase
         {
-            public ElementType Type => ElementType.Water;
-            public float StaminaCost { get; } = 20f;
+            public override ElementType Type => ElementType.Water;
+            public override float StaminaCost => 20f;
+            public override float CooldownMs => 1500f; // 1.5 second cooldown
 
-            public void PrimaryAttack(Player player)
+            public override bool PrimaryAttack(Player player)
             {
-                if (!player.CanUseAbility(StaminaCost)) return;
                 player.UseStamina(StaminaCost);
                 SpawnRipple(player);
                 Console.WriteLine($"Primary attack of type: {Type}");
+                return true;
             }
             public void SpawnRipple(Player player)
             {
@@ -64,29 +88,33 @@ namespace FadePlanet
             }
 
         }
-        public class EarthScroll : IElement
+        public class EarthScroll : ScrollBase
         {
-            public ElementType Type => ElementType.Earth;
-            public float StaminaCost { get; } = 25f;
-            public void PrimaryAttack(Player player)
+            public override ElementType Type => ElementType.Earth;
+            public override float StaminaCost => 25f;
+            public override float CooldownMs => 2000f; // 2 second cooldown
+
+            public override bool PrimaryAttack(Player player)
             {
-                if (!player.CanUseAbility(StaminaCost)) return;
                 player.UseStamina(StaminaCost);
                 Console.WriteLine($"Primary attack of type: {Type}");
+                return true;
             }
 
         }
-        public class AirScroll : IElement
+        public class AirScroll : ScrollBase
         {
-            public ElementType Type => ElementType.Air;
-            public float StaminaCost { get; } = 5f;
-            public void PrimaryAttack(Player player)
+            public override ElementType Type => ElementType.Air;
+            public override float StaminaCost => 5f;
+            public override float CooldownMs => 800f; // 0.8 second cooldown
+
+            public override bool PrimaryAttack(Player player)
             {
-                if (!player.CanUseAbility(StaminaCost)) return;
                 player.UseStamina(StaminaCost);
                 Console.WriteLine($"Primary attack of type: {Type}");
+                return true;
             }
-            
+
         }
     }
 }

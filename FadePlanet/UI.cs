@@ -113,7 +113,11 @@ namespace FadePlanet
         private Bitmap currentScrollSheet;
         private Bitmap pendingScrollSheet;
 
-
+        public UI (string basePath)
+        {
+            LoadScrollSheets(basePath);
+            LoadInventoryIcons(basePath);
+        }
 
         // =========================
         //      LOAD METHODS

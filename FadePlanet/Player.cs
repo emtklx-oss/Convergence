@@ -78,7 +78,11 @@ namespace FadePlanet
         }
 
         public bool HasToken(ElementType element) { return Tokens.Contains(element); }
-        
+
+        #endregion
+
+        #region Primary Attack Cooldown
+        private const float GameLoopDeltaMs = 16f; // 16ms per frame matches timer interval
         #endregion
 
         #region Player Abilities
@@ -142,15 +146,11 @@ namespace FadePlanet
         private float knockbackRemaining = 0f;
         #endregion
 
-        #region Primary Attack Cooldown
-        private const int AbilityCooldownMs = 1000; // 1 second cooldown
-        private int AbilityCooldownRemaining = 0;
-
-        #endregion
 
         public Player(Point pos, Size size) : base(pos, size, ObjectType.Player)
         {
             CurrentElement = _abilities[Keys.D4];
+            LoadImages();
         }
 
         #region Movement & Animation
@@ -330,7 +330,7 @@ namespace FadePlanet
 
             IsPlayingSlash = true;
             slashFrameIndex = 0;
-            slashFrameTimer = 0;aa
+            slashFrameTimer = 0;
             swordHitDealtThisSwing = false;
         }
         public void TriggerHealAnimation()
@@ -359,10 +359,11 @@ namespace FadePlanet
         {
             RegenerateStamina();
 
-            // Decrement secondary attack cooldown
-            if (AbilityCooldownRemaining > 0)
+            // Update ability cooldowns
+            CurrentElement?.UpdateCooldown(GameLoopDeltaMs);
+            if (PendingElement != null && PendingElement != CurrentElement)
             {
-                AbilityCooldownRemaining -= 16; // ~16ms per frame at 60fps
+                PendingElement.UpdateCooldown(GameLoopDeltaMs);
             }
 
             // Handle knockback first — overrides everything
@@ -622,7 +623,7 @@ namespace FadePlanet
 
         public bool CanUseAbility(float staminaCost)
         {
-            return Stamina >= staminaCost && AbilityCooldownRemaining <= 0;
+            return Stamina >= staminaCost && CurrentElement.CooldownRemaining <= 0f;
         }
         #endregion
 
@@ -680,11 +681,20 @@ namespace FadePlanet
                     return;
                 }
 
-                if (selectedSlot == InventorySlotEarthScroll && CurrentElement is EarthScroll) { TriggerRockBarrierAnimation(); } 
-                else { TriggerSlashAnimation(); }
+                if (selectedSlot == InventorySlotEarthScroll && CurrentElement is EarthScroll) 
+                { 
+                    TriggerRockBarrierAnimation(); 
+                } 
+                else 
+                { 
+                    TriggerSlashAnimation(); 
+                }
 
-                CurrentElement?.PrimaryAttack(this);
-                AbilityCooldownRemaining = AbilityCooldownMs;
+                //Only reset cooldown if attack is activated
+                if (CurrentElement?.PrimaryAttack(this) == true)
+                {
+                    CurrentElement.CooldownRemaining = CurrentElement.CooldownMs;
+                }
             }
             if (e.Button == MouseButtons.Right)
             {

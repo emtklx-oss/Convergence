@@ -8,16 +8,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static FadePlanet.GameManager;
 
 namespace FadePlanet
 {
     public partial class Convergence : Form
     {
-        // --- DECLARE VARIABLES ---
+        // --- DECLARE UI ---
         private UI gameUI;
-        private Player player;
-
-        private List<Enemy> enemies = new List<Enemy>();
 
         // UI Images
         private Image healthGraphic;
@@ -45,13 +43,16 @@ namespace FadePlanet
             this.MouseClick += Convergence_MouseClick;
 
             // --- INITIALIZE CLASSES ---
-            gameUI = new UI();
-            player = new Player(new Point(528, 248), new Size(224, 224));
+            // REMEMBER: Objects are automatatically added to the dictionary of current objects in room in GameManager
+
+            SetPlayer(new Player(new Point(528, 248), new Size(224, 224)));
+
+            new OldMan(new Point(100, 100), new Size(224, 224));
 
             // Create items
-            Item airToken = new Item(new Point(700, 300), new Size(Item.DrawSize, Item.DrawSize), ItemType.Token, ElementType.Air);
-            Item potion = new Item(new Point(600, 250), new Size(Item.DrawSize, Item.DrawSize), ItemType.Potion);
-            
+            new Item(new Point(700, 300), new Size(Item.DrawSize, Item.DrawSize), ItemType.Token, ElementType.Air);
+            new Item(new Point(600, 250), new Size(Item.DrawSize, Item.DrawSize), ItemType.Potion);
+
 
             // --- SPAWN TEST ENEMIES ---
             SpawnEnemy(EnemyType.Air, new Point(200, 200));
@@ -61,6 +62,7 @@ namespace FadePlanet
 
             // --- LOAD IMAGES ---
             string basePath = GetProjectRoot();
+            
 
             try
             {
@@ -70,17 +72,15 @@ namespace FadePlanet
                 staminaBar = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\StaminaBar.png"));
                 inventorySlots = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\Inventory Slots.png"));
 
-                player.LoadImages();
-                gameUI.LoadScrollSheets(basePath);
-                gameUI.LoadInventoryIcons(basePath);
-
-                foreach (Enemy e in enemies)
+                foreach (Enemy e in GetObjectsByType(ObjectType.Enemy))
                     e.LoadImages();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Image load failed: " + ex.Message);
             }
+            
+            gameUI = new UI(basePath);
 
             // --- START GAME LOOP ---
             gameLoop = new System.Windows.Forms.Timer();
@@ -91,71 +91,74 @@ namespace FadePlanet
 
         private void SpawnEnemy(EnemyType type, Point pos)
         {
-            Enemy e = new Enemy(pos, new Size((int)(32 * 3.0f), (int)(32 * 3.0f)), type);
-            e.LoadImages();
-            enemies.Add(e);
+            new Enemy(pos, new Size((int)(32 * 3.0f), (int)(32 * 3.0f)), type);
         }
 
         // --- INPUT HANDLING ---
         private void Convergence_KeyDown(object sender, KeyEventArgs e)
         {
-            if (!player.ScrollSwitchLocked)
+            if (!CurPlayer.ScrollSwitchLocked)
             {
-                var previousElement = player.CurrentElement;
-                player.HandleScrollSwitch(e.KeyCode);
+                var previousElement = CurPlayer.CurrentElement;
+                CurPlayer.HandleScrollSwitch(e.KeyCode);
 
-                if (player.PendingElement != null && player.CurrentElement == previousElement)
-                    gameUI.StartScrollSwitch(player.PendingElement.Type);
+                if (CurPlayer.PendingElement != null && CurPlayer.CurrentElement == previousElement)
+                    gameUI.StartScrollSwitch(CurPlayer.PendingElement.Type);
             }
 
-            if (e.KeyCode == Keys.D1) gameUI.SetSelectedSlot(1, player.ScrollSwitchLocked);
-            if (e.KeyCode == Keys.D2) gameUI.SetSelectedSlot(2, player.ScrollSwitchLocked);
-            if (e.KeyCode == Keys.D3) gameUI.SetSelectedSlot(3, player.ScrollSwitchLocked);
-            if (e.KeyCode == Keys.D4) gameUI.SetSelectedSlot(4, player.ScrollSwitchLocked);
+            if (e.KeyCode == Keys.D1) gameUI.SetSelectedSlot(1, CurPlayer.ScrollSwitchLocked);
+            if (e.KeyCode == Keys.D2) gameUI.SetSelectedSlot(2, CurPlayer.ScrollSwitchLocked);
+            if (e.KeyCode == Keys.D3) gameUI.SetSelectedSlot(3, CurPlayer.ScrollSwitchLocked);
+            if (e.KeyCode == Keys.D4) gameUI.SetSelectedSlot(4, CurPlayer.ScrollSwitchLocked);
             if (e.KeyCode == Keys.D5) gameUI.SetSelectedSlot(5, false);
             if (e.KeyCode == Keys.D6) gameUI.SetSelectedSlot(6, false);
 
-            player.HandleKeyDown(e);
+            CurPlayer.HandleKeyDown(e);
         }
         private void Convergence_KeyUp(object sender, KeyEventArgs e)
         {
-            player.HandleKeyUp(e);
+            CurPlayer.HandleKeyUp(e);
         }
         private void Convergence_Load(object sender, EventArgs e) { }
         private void Convergence_MouseClick(object sender, MouseEventArgs e)
         {
-            player.HandleMouseClick(e, gameUI.SelectedSlot);
+            CurPlayer.HandleMouseClick(e, gameUI.SelectedSlot);
         }
 
 
         // --- GAME LOOP UPDATE ---
         private void GameLoop_Tick(object sender, EventArgs e)
         {
-            // 1. Build WorldObject list for sword hit detection
-            List<WorldObject> enemyObjects = new List<WorldObject>(enemies);
+
 
             // 2. Update player
-            player.Update(enemyObjects);
+            UpdateObjectType(ObjectType.Player, (obj) =>
+            {
+                if (obj is Player p)
+                {
+                    p.Update(GetObjectsByType(ObjectType.Enemy));
+                }
+            });
 
             // 3. Scroll animation milestones
             var (closingDone, openingDone) = gameUI.UpdateScrollAnimation();
 
-            if (closingDone) player.ConfirmScrollSwitch();
+            if (closingDone) CurPlayer.ConfirmScrollSwitch();
             if (openingDone)
             {
-                player.UnlockScrollSwitch();
+                CurPlayer.UnlockScrollSwitch();
                 gameUI.FlushPendingSlot();
             }
 
             // 4. Remove dead enemies then update living ones
-            enemies.RemoveAll(en =>
+            GetObjectsByType(ObjectType.Enemy).RemoveAll(en =>
             {
                 if (GameManager.AllObjects.TryGetValue(ObjectType.Enemy, out var dict))
                     return !dict.ContainsKey(en.Id);
                 return true;
             });
 
-            foreach (Enemy en in enemies) { en.Update(player); }
+            foreach (Enemy en in GetObjectsByType(ObjectType.Enemy)) { en.Update(CurPlayer); }
 
             // 5. Update all projectiles
             UpdateObjectType(ObjectType.Projectile, (obj) =>
@@ -166,7 +169,7 @@ namespace FadePlanet
                     // Remove projectiles that go off screen
                     if (proj.Position.X < -50 || proj.Position.X > ClientSize.Width + 50)
                     {
-                        GameManager.DespawnObject(proj);
+                        DespawnObject(proj);
                     }
                 }
             });
@@ -188,43 +191,46 @@ namespace FadePlanet
                     item.Update();
 
                     // Check for pickup
-                    if (!player.IsPlayingPickup && !player.IsPlayingSlash)
+                    if (!CurPlayer.IsPlayingPickup && !CurPlayer.IsPlayingSlash)
                     {
-                        float dx = (item.Position.X + Item.DrawSize / 2f) - (player.Position.X + 112f);
-                        float dy = (item.Position.Y + Item.DrawSize / 2f) - (player.Position.Y + 112f);
+                        float dx = (item.Position.X + Item.DrawSize / 2f) - (CurPlayer.Position.X + 112f);
+                        float dy = (item.Position.Y + Item.DrawSize / 2f) - (CurPlayer.Position.Y + 112f);
                         float distance = (float)Math.Sqrt(dx * dx + dy * dy);
 
                         if (distance <= Item.PickupRange)
                         {
-                            player.PickUpItem(item);
+                            CurPlayer.PickUpItem(item);
                             GameManager.DespawnObject(item);
 
                             if (item.ItemType == ItemType.Token)
-                            player.TriggerPickupAnimation();
+                                CurPlayer.TriggerPickupAnimation();
                         }
+                    }
+                }
+            });
+            UpdateObjectType(ObjectType.Friendly, (obj) =>
+            {
+                if (obj is OldMan man)
+                {
+                    //Check interaction if player isn't attacking or picking something up
+                    if (!CurPlayer.IsPlayingPickup && !CurPlayer.IsPlayingSlash)
+                    {
+                        float dx = (man.Position.X + man.ObjSize.Width / 2f) - (CurPlayer.Position.X + 112f);
+                        float dy = (man.Position.Y + man.ObjSize.Height / 2f) - (CurPlayer.Position.Y + 112f);
+                        float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+
+                        if (distance <= OldMan.InteractDistance) { man.OnInteract(CurPlayer); }
                     }
                 }
             });
 
             // 8. Sync UI
-            gameUI.UpdateHealth(player.Health, player.MaxHealth);
-            gameUI.UpdateStamina(player.Stamina, player.MaxStamina);
-            gameUI.UpdatePotionCount(player.PotionCount);
+            gameUI.UpdateHealth(CurPlayer.Health, CurPlayer.MaxHealth);
+            gameUI.UpdateStamina(CurPlayer.Stamina, CurPlayer.MaxStamina);
+            gameUI.UpdatePotionCount(CurPlayer.PotionCount);
 
             // 9. Redraw
             this.Invalidate();
-        }
-
-        // Helper method to update all objects of a specific type from GameManager
-        private void UpdateObjectType(ObjectType type, Action<WorldObject> updateAction)
-        {
-            if (GameManager.AllObjects.TryGetValue(type, out var objectDict))
-            {
-                foreach (WorldObject obj in objectDict.Values.ToList())
-                {
-                    updateAction(obj);
-                }
-            }
         }
 
 
@@ -237,7 +243,7 @@ namespace FadePlanet
             DrawObjectType(e.Graphics, ObjectType.Item);
 
             // Draw all enemies
-            foreach (Enemy en in enemies)
+            foreach (Enemy en in GetObjectsByType(ObjectType.Enemy))
                 en.Draw(e.Graphics);
 
             // Draw all projectiles
@@ -246,9 +252,13 @@ namespace FadePlanet
             // Draw all ripples
             DrawObjectType(e.Graphics, ObjectType.None, (obj) => obj is Ripple);
 
+
             // Draw player and hitbox
-            player.Draw(e.Graphics);
-            player.DrawHitbox(e.Graphics);
+            CurPlayer?.Draw(e.Graphics);
+            CurPlayer?.DrawHitbox(e.Graphics);
+
+
+
 
             // Draw UI
             if (healthGraphic != null && healthBar != null && staminaGraphic != null && staminaBar != null && inventorySlots != null)
@@ -264,21 +274,7 @@ namespace FadePlanet
                     this.ClientSize.Height
                 );
             }
-        }
 
-        // Helper method to draw all objects of a specific type from GameManager
-        private void DrawObjectType(Graphics g, ObjectType type, Func<WorldObject, bool> filter = null)
-        {
-            if (GameManager.AllObjects.TryGetValue(type, out var objectDict))
-            {
-                foreach (WorldObject obj in objectDict.Values)
-                {
-                    if (filter == null || filter(obj))
-                    {
-                        obj.Draw(g);
-                    }
-                }
-            }
         }
     }
 }

@@ -129,6 +129,8 @@ namespace FadePlanet
             }
 
             Health = MaxHealth;
+
+            LoadImages();
         }
 
         private string GetProjectRoot()
