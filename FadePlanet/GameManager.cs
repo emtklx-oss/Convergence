@@ -12,10 +12,6 @@ namespace FadePlanet
 
     public static class GameManager
     {
-        public static void LoadRoom()
-        {
-            CurPlayer = new Player(new Point(528, 248), new Size(224, 224));
-        }
         public static Player CurPlayer { get; private set; }
         public static void SetPlayer(Player plr) { CurPlayer = plr;  }
         #region Object Management
@@ -23,47 +19,6 @@ namespace FadePlanet
         private static readonly Dictionary<ObjectType, Dictionary<int, WorldObject>> RoomObjects = new Dictionary<ObjectType, Dictionary<int, WorldObject>>();
         public static IReadOnlyDictionary<ObjectType, Dictionary<int, WorldObject>> AllObjects => RoomObjects;
         public static int _idCounter = 0;
-
-        public static bool TryMove(WorldObject obj, int dX, int dY)
-        {
-            PointF targetPosition = new PointF(obj.Position.X + dX, obj.Position.Y + dY);
-            RectangleF targetBounds = new RectangleF(targetPosition, obj.ObjSize);
-
-            ObjectType[] solidTypes = { ObjectType.Wall, ObjectType.Friendly, ObjectType.Enemy };
-
-            for (int i = 0; i < solidTypes.Length; i++)
-            {
-                ObjectType type = solidTypes[i];
-
-                if (!RoomObjects.TryGetValue(type, out var categoryDict)) continue;
-
-                var objects = categoryDict.Values;
-
-                foreach (var otherObj in objects)
-                {
-                    if (otherObj.Id == obj.Id) continue;
-
-                    if (Math.Abs(otherObj.Position.X - targetPosition.X) > 100 ||
-                        Math.Abs(otherObj.Position.Y - targetPosition.Y) > 100)
-                    {
-                        continue;
-                    }
-
-                    if (targetBounds.IntersectsWith(otherObj.Hitbox))
-                    {
-                        if (otherObj.Type == ObjectType.Friendly || otherObj.Type == ObjectType.Enemy)
-                        {
-                            // Handle interactions here (e.g., combat, dialogue)
-                        }
-
-                        return false;
-                    }
-                }
-            }
-
-            obj.Position = targetPosition;
-            return true;
-        }
 
         public static void SpawnObject(WorldObject obj)
         {
@@ -85,11 +40,16 @@ namespace FadePlanet
             }
         }
 
+        //Helper for spawning enemies into rooms
+        private static Enemy SpawnEnemy(EnemyType type, Point pos)
+        {
+            return new Enemy(pos, new Size((int)(32 * 3.0f), (int)(32 * 3.0f)), type);
+        }
         #endregion
 
         #region Object Updates & Rendering
 
-        
+
         // Retrieves all objects of a specific type from GameManager.
         // Returns a list of objects for direct modification or querying.
         public static List<WorldObject> GetObjectsByType(ObjectType type)
@@ -130,6 +90,40 @@ namespace FadePlanet
             }
         }
 
+        #endregion
+
+        #region Rooms
+        public static void LoadRoom_One()
+        {
+            //Load background, sound, etc.
+
+            //Objects
+            SetPlayer( new Player(new Point(528, 250), new Size(224, 224)) );
+
+            new OldMan(new Point(800, 250), new Size(250, 250));
+
+
+        }
+        public static void LoadRoom_Two()
+        {
+            //Air
+        }
+        public static void LoadRoom_Three()
+        {
+            //Water
+        }
+        public static void LoadRoom_Four()
+        {
+            //Earth
+        }
+        public static void LoadRoom_Five()
+        {
+            //Fire
+        }
+        public static void LoadRoom_Six()
+        {
+            //Boss
+        }
         #endregion
     }
 }

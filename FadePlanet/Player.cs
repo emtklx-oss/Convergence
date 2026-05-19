@@ -154,6 +154,7 @@ namespace FadePlanet
         public Player(Point pos, Size size) : base(pos, size, ObjectType.Player)
         {
             CurrentElement = _abilities[Keys.D4];
+            ObjSize = new Size(224, 224);
             LoadImages();
         }
 
@@ -582,6 +583,7 @@ namespace FadePlanet
             return isFacingLeft ? new PointF(-1, 0) : new PointF(1, 0);
         }
 
+        
         public override void Draw(Graphics g)
         {
             if (IsPlayingHeal)

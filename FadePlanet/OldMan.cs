@@ -11,7 +11,7 @@ namespace FadePlanet
 {
     internal class OldMan : WorldObject
     {
-        public const float InteractDistance = 100f;
+        public const float InteractDistance = 200f;
         private bool firstInteraction = true;
         private Image ManImage;
         public bool IsInteracting { get; private set; } = false; //Prevent multiple windows popping up
@@ -19,7 +19,22 @@ namespace FadePlanet
 
         
         private DialogForm DialogWindow;
-        
+
+        #region Hitbox
+        private const float HitboxWidth = 200f;
+        private const float HitboxHeight = 200f;
+        private const float HitboxOffsetX = 25f;
+        private const float HitboxOffsetY = 50f;
+
+        // Override the base WorldObject Hitbox with a more precise player hitbox
+        public override RectangleF Hitbox => new RectangleF(
+            Position.X + HitboxOffsetX,
+            Position.Y + HitboxOffsetY,
+            HitboxWidth,
+            HitboxHeight
+        );
+        #endregion
+
         public OldMan(PointF pos, SizeF size, ObjectType type = ObjectType.Friendly) : base(pos, size, type)
         {
             LoadImage();
@@ -52,9 +67,10 @@ namespace FadePlanet
                 ShowMenu();
             }
 
-            
+            IsInteracting = false;
             GameManager.CurPlayer.SetMovementState(true);
         }
+        
         public override void Draw(Graphics g)
         {
             if (ManImage == null) return;

@@ -42,24 +42,6 @@ namespace FadePlanet
             this.KeyUp += Convergence_KeyUp;
             this.MouseClick += Convergence_MouseClick;
 
-            // --- INITIALIZE CLASSES ---
-            // REMEMBER: Objects are automatatically added to the dictionary of current objects in room in GameManager
-
-            SetPlayer(new Player(new Point(528, 248), new Size(224, 224)));
-
-            new OldMan(new Point(400, 200), new Size(280, 280));
-
-            // Create items
-            new Item(new Point(700, 300), new Size(Item.DrawSize, Item.DrawSize), ItemType.Token, ElementType.Air);
-            new Item(new Point(600, 250), new Size(Item.DrawSize, Item.DrawSize), ItemType.Potion);
-
-
-            // --- SPAWN TEST ENEMIES ---
-            SpawnEnemy(EnemyType.Air, new Point(200, 200));
-            SpawnEnemy(EnemyType.Water, new Point(900, 400));
-            SpawnEnemy(EnemyType.Earth, new Point(300, 500));
-            SpawnEnemy(EnemyType.Fire, new Point(1000, 200));
-
             // --- LOAD IMAGES ---
             string basePath = GetProjectRoot();
             
@@ -89,10 +71,7 @@ namespace FadePlanet
             gameLoop.Start();
         }
 
-        private void SpawnEnemy(EnemyType type, Point pos)
-        {
-            new Enemy(pos, new Size((int)(32 * 3.0f), (int)(32 * 3.0f)), type);
-        }
+        
 
         // --- INPUT HANDLING ---
         private void Convergence_KeyDown(object sender, KeyEventArgs e)
@@ -119,7 +98,10 @@ namespace FadePlanet
         {
             CurPlayer.HandleKeyUp(e);
         }
-        private void Convergence_Load(object sender, EventArgs e) { }
+        private void Convergence_Load(object sender, EventArgs e) 
+        {
+            GameManager.LoadRoom_One();
+        }
         private void Convergence_MouseClick(object sender, MouseEventArgs e)
         {
             CurPlayer.HandleMouseClick(e, gameUI.SelectedSlot);
@@ -238,10 +220,15 @@ namespace FadePlanet
             });
 
             // 8. Sync UI
-            gameUI.UpdateHealth(CurPlayer.Health, CurPlayer.MaxHealth);
-            gameUI.UpdateStamina(CurPlayer.Stamina, CurPlayer.MaxStamina);
-            gameUI.UpdatePotionCount(CurPlayer.Potions);
-            gameUI.UpdateCurrency(CurPlayer.Currency);
+            if (GameManager.CurPlayer != null)
+            {
+                gameUI.UpdateHealth(CurPlayer.Health, CurPlayer.MaxHealth);
+                gameUI.UpdateStamina(CurPlayer.Stamina, CurPlayer.MaxStamina);
+                gameUI.UpdatePotionCount(CurPlayer.Potions);
+                gameUI.UpdateCurrency(CurPlayer.Currency);
+
+            }
+            
 
             // 9. Redraw
             this.Invalidate();
