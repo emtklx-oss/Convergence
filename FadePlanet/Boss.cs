@@ -89,6 +89,8 @@ namespace FadePlanet
 
         public new void Update(Player player)
         {
+            // Boss is stationary - no movement
+
             // Update animation
             UpdateAnimation();
 
@@ -277,6 +279,12 @@ namespace FadePlanet
         public new void ApplyStun(int durationMs)
         {
             stunTimer = durationMs;
+        }
+
+        // Boss is a statue - no knockback when attacked
+        public void ApplyKnockback(PointF sourcePosition, float distance)
+        {
+            // Do nothing - boss is stationary
         }
 
         public new void OnDeath()

@@ -212,11 +212,8 @@ namespace FadePlanet
                         break;
                     }
 
-                    if (distance > DetectionRadius)
-                    {
-                        State = EnemyState.Idle;
-                        break;
-                    }
+                    // Once triggered, enemies don't stop following player
+                    // Removed the check that would make them go back to idle when distance > DetectionRadius
 
                     float len = (float)Math.Sqrt(dx * dx + dy * dy);
                     if (len > 0)

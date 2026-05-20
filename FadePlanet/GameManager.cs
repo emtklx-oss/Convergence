@@ -184,8 +184,8 @@ namespace FadePlanet
 
         private static void SpawnBoss()
         {
-            // Spawn boss at center with larger size
-            Point bossPos = new Point(640 - 245, 360 - 245);
+            // Position boss: center Y (360 - 245 = 115), right X but not cutoff (1280 - 490 = 790)
+            Point bossPos = new Point(790, 115);
             Boss boss = new Boss(bossPos, new Size(490, 490));
         }
         #endregion

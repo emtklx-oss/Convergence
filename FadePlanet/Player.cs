@@ -57,13 +57,18 @@ namespace FadePlanet
         public int Currency { get; private set; } = 30;
         public void AddCurrency(int amount) { Currency += amount; }
         public void AddPotions(int amount) { Potions += amount; }
+        // Store token item to advance realm after animation completes
+        private Item pendingTokenItem = null;
+
         public void PickUpItem(Item item)
         {
             switch (item.ItemType)
             {
                 case ItemType.Token:
                     AddToken(item.TokenType);
-                    GameManager.OnTokenCollected();
+                    // Store token and trigger animation, advance realm after animation
+                    pendingTokenItem = item;
+                    TriggerPickupAnimation();
                     break;
                 case ItemType.Potion:
                     Potions++;
@@ -129,15 +134,46 @@ namespace FadePlanet
         private RectangleF GetMeleeHitbox(float width)
         {
             const float meleeGap = 8f;
-            float offsetXLocal = isFacingLeft
-                ? HitboxOffsetX - meleeGap - width
-                : HitboxOffsetX + HitboxWidth + meleeGap;
+            PointF dir = GetCurrentAttackDirection();
+
+            // Calculate hitbox position based on attack direction
+            float offsetXLocal, offsetYLocal;
+            float hitboxWidth, hitboxHeight;
+
+            if (dir.Y < 0) // Upward attack
+            {
+                offsetXLocal = HitboxOffsetX + (HitboxWidth - width) / 2;
+                offsetYLocal = HitboxOffsetY - meleeGap - SwordHitboxHeight;
+                hitboxWidth = width;
+                hitboxHeight = SwordHitboxHeight;
+            }
+            else if (dir.Y > 0) // Downward attack
+            {
+                offsetXLocal = HitboxOffsetX + (HitboxWidth - width) / 2;
+                offsetYLocal = HitboxOffsetY + HitboxHeight + meleeGap;
+                hitboxWidth = width;
+                hitboxHeight = SwordHitboxHeight;
+            }
+            else if (dir.X < 0) // Left attack
+            {
+                offsetXLocal = HitboxOffsetX - meleeGap - width;
+                offsetYLocal = SwordHitboxOffsetY;
+                hitboxWidth = width;
+                hitboxHeight = SwordHitboxHeight;
+            }
+            else // Right attack (default)
+            {
+                offsetXLocal = HitboxOffsetX + HitboxWidth + meleeGap;
+                offsetYLocal = SwordHitboxOffsetY;
+                hitboxWidth = width;
+                hitboxHeight = SwordHitboxHeight;
+            }
 
             return new RectangleF(
                 Position.X + offsetXLocal,
-                Position.Y + SwordHitboxOffsetY,
-                width,
-                SwordHitboxHeight
+                Position.Y + offsetYLocal,
+                hitboxWidth,
+                hitboxHeight
             );
         }
 
@@ -420,6 +456,13 @@ namespace FadePlanet
                         IsPlayingPickup = false;
                         pickupFrameIndex = 0;
                         currentImage = isFacingLeft ? idleL1 : idleR1;
+
+                        // Advance to next realm after token animation completes
+                        if (pendingTokenItem != null)
+                        {
+                            GameManager.OnTokenCollected();
+                            pendingTokenItem = null;
+                        }
                     }
                 }
 
@@ -605,6 +648,16 @@ namespace FadePlanet
             return isFacingLeft ? new PointF(-1, 0) : new PointF(1, 0);
         }
 
+        // Get current attack direction for sword hitbox calculation
+        private PointF GetCurrentAttackDirection()
+        {
+            if (isMovingUp) return new PointF(0, -1);
+            if (isMovingDown) return new PointF(0, 1);
+            if (isMovingLeft) return new PointF(-1, 0);
+            if (isMovingRight) return new PointF(1, 0);
+            return isFacingLeft ? new PointF(-1, 0) : new PointF(1, 0);
+        }
+
         
         public override void Draw(Graphics g)
         {
@@ -740,6 +793,13 @@ namespace FadePlanet
         {
             if (e.Button == MouseButtons.Left)
             {
+                // Slot 5: sword attacks only, no elemental attacks
+                if (selectedSlot == 5)
+                {
+                    TriggerSlashAnimation();
+                    return;
+                }
+
                 if (selectedSlot == InventorySlotPotion)
                 {
                     ApplyHeal();
@@ -747,13 +807,27 @@ namespace FadePlanet
                     return;
                 }
 
-                if (selectedSlot == InventorySlotEarthScroll && CurrentElement is EarthScroll) 
-                { 
-                    TriggerRockBarrierAnimation(); 
-                } 
-                else 
-                { 
-                    TriggerSlashAnimation(); 
+                // Check if player has enough stamina for elemental attack
+                if (CurrentElement != null && Stamina < CurrentElement.StaminaCost)
+                {
+                    // Not enough stamina, don't perform elemental attack
+                    return;
+                }
+
+                // Water attack: freeze player, no animation, just idle frame
+                if (selectedSlot == InventorySlotEarthScroll && CurrentElement is EarthScroll)
+                {
+                    TriggerRockBarrierAnimation();
+                }
+                else if (CurrentElement is WaterScroll)
+                {
+                    // Water attack: freeze player in place, show idle frame, no slash animation
+                    SetMovementState(false);
+                    currentImage = isFacingLeft ? idleL1 : idleR1;
+                }
+                else
+                {
+                    TriggerSlashAnimation();
                 }
 
                 //Only reset cooldown if attack is activated
@@ -767,7 +841,7 @@ namespace FadePlanet
                 if (!IsActionLocked)
                 {
                     TriggerSlashAnimation();
-                    
+
                 }
             }
         }

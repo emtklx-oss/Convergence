@@ -78,8 +78,9 @@ namespace FadePlanet
             {
                 try
                 {
+                    // Load fireball spritesheet from Graphics\Player\Attacks folder (3 frames, 32x32)
                     string basePath = GetProjectRoot();
-                    fireballSheet = new Bitmap(Path.Combine(basePath, @"Graphics\Projectiles\Fireball.png"));
+                    fireballSheet = new Bitmap(Path.Combine(basePath, @"Graphics\Player\Attacks\Fireball.png"));
                 }
                 catch
                 {

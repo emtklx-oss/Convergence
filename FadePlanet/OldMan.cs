@@ -194,7 +194,8 @@ namespace FadePlanet
                     case "Potion - $10":
                         if (GameManager.CurPlayer.Currency >= 10)
                         {
-                            GameManager.CurPlayer.AddCurrency(-10); //Takes 10
+                            // Subtract 10 currency and add 1 potion
+                            GameManager.CurPlayer.AddCurrency(-10);
                             GameManager.CurPlayer.AddPotions(1);
                             MessageBox.Show("Thank you for your purchase!", "Purchase confirmed", MessageBoxButtons.OK);
                         }
@@ -202,7 +203,7 @@ namespace FadePlanet
                         {
                             MessageBox.Show("Don't try that again...", "Purchase failed - Your too poor!", MessageBoxButtons.OK);
                         }
-                        
+
                         break;
                     case "Nevermind":
                         // Return to menu
