@@ -77,6 +77,7 @@ namespace FadePlanet
 
             public override bool PrimaryAttack(Player player)
             {
+                if (!player.CanUseAbility(StaminaCost)) return false;
                 player.UseStamina(StaminaCost);
                 SpawnRipple(player);
                 Console.WriteLine($"Primary attack of type: {Type}");

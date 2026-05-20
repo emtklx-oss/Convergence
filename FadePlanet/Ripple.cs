@@ -10,7 +10,7 @@ namespace FadePlanet
     internal class Ripple : WorldObject
     {
         private float CurrentRadius { get; set; } = 0f;
-        private const float MaxRadius = 150f;
+        private const float MaxRadius = 250f;
         private const float ExpandSpeed = 4.0f;
         private const float KnockbackDistance = 40f;
         private const float KnockbackSpeed = 3f;

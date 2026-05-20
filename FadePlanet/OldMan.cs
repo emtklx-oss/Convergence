@@ -180,10 +180,10 @@ namespace FadePlanet
         private void ShowShop()
         {
             string shopText = "Welcome to my shop!\n\n" +
-                "I sell healing potions for 10 currency each.\n" +
+                "I sell healing potions for 1 currency each.\n" +
                 "(Shop functionality coming soon...)";
 
-            using (DialogWindow = new DialogForm("Old Man's Shop", shopText, "Potion - $10", "Nevermind"))
+            using (DialogWindow = new DialogForm("Old Man's Shop", shopText, "Potion - $1", "Nevermind"))
             {
                 DialogWindow.ShowDialog();
 
@@ -191,11 +191,11 @@ namespace FadePlanet
 
                 switch(selectedButton)
                 {
-                    case "Potion - $10":
-                        if (GameManager.CurPlayer.Currency >= 10)
+                    case "Potion - $1":
+                        if (GameManager.CurPlayer.Currency >= 1)
                         {
                             // Subtract 10 currency and add 1 potion
-                            GameManager.CurPlayer.AddCurrency(-10);
+                            GameManager.CurPlayer.AddCurrency(-1);
                             GameManager.CurPlayer.AddPotions(1);
                             MessageBox.Show("Thank you for your purchase!", "Purchase confirmed", MessageBoxButtons.OK);
                         }

@@ -134,7 +134,7 @@ namespace FadePlanet
         private RectangleF GetMeleeHitbox(float width)
         {
             const float meleeGap = 8f;
-            PointF dir = GetCurrentAttackDirection();
+            PointF dir = GetAttackDirection();
 
             // Calculate hitbox position based on attack direction
             float offsetXLocal, offsetYLocal;
@@ -603,6 +603,14 @@ namespace FadePlanet
             if (isMovingLeft) { x -= Speed; isMoving = true; isFacingLeft = true; currentImage = facingL; }
             if (isMovingRight) { x += Speed; isMoving = true; isFacingLeft = false; currentImage = facingR; }
 
+            RectangleF nextBounds = new RectangleF(x, y, HitboxWidth, HitboxHeight);
+
+            // Window bounds restraints
+            if (nextBounds.X < 0) x = 0;
+            if (nextBounds.Y < 0) y = 0;
+            if (nextBounds.X > GameManager.WindowSize.Width - Hitbox.Width) x = GameManager.WindowSize.Width - Hitbox.Width;
+            if (nextBounds.Y > GameManager.WindowSize.Height - ObjSize.Height) y = GameManager.WindowSize.Height - ObjSize.Height;
+
             Position = new PointF(x, y);
 
             if (!isMoving)
@@ -648,17 +656,6 @@ namespace FadePlanet
             return isFacingLeft ? new PointF(-1, 0) : new PointF(1, 0);
         }
 
-        // Get current attack direction for sword hitbox calculation
-        private PointF GetCurrentAttackDirection()
-        {
-            if (isMovingUp) return new PointF(0, -1);
-            if (isMovingDown) return new PointF(0, 1);
-            if (isMovingLeft) return new PointF(-1, 0);
-            if (isMovingRight) return new PointF(1, 0);
-            return isFacingLeft ? new PointF(-1, 0) : new PointF(1, 0);
-        }
-
-        
         public override void Draw(Graphics g)
         {
             if (IsPlayingHeal)
@@ -807,13 +804,7 @@ namespace FadePlanet
                     return;
                 }
 
-                // Check if player has enough stamina for elemental attack
-                if (CurrentElement != null && Stamina < CurrentElement.StaminaCost)
-                {
-                    // Not enough stamina, don't perform elemental attack
-                    return;
-                }
-
+               
                 // Water attack: freeze player, no animation, just idle frame
                 if (selectedSlot == InventorySlotEarthScroll && CurrentElement is EarthScroll)
                 {

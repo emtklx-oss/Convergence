@@ -434,7 +434,7 @@ namespace FadePlanet
                 float currencyIconX = iconXs[6];
                 float currencyIconY = iconYs[6];
 
-                string countText = PotionCount.ToString();
+                string countText = CurrencyCount.ToString();
                 SizeF textSize = g.MeasureString(countText, countFont);
                 float textX = currencyIconX + ItemIconSize - textSize.Width;
                 float textY = currencyIconY + ItemIconSize - textSize.Height;

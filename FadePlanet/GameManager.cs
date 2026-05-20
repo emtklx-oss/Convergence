@@ -15,6 +15,7 @@ namespace FadePlanet
     public static class GameManager
     {
         public static Player CurPlayer { get; private set; }
+        public static readonly Size WindowSize = new Size(1280, 720);
         public static void SetPlayer(Player plr) { CurPlayer = plr; }
         public static bool GameWon { get; private set; } = false;
         public static float VictoryFadeAlpha { get; private set; } = 0f;

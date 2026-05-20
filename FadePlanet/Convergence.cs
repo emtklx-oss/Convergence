@@ -35,7 +35,7 @@ namespace FadePlanet
         {
             InitializeComponent();
 
-            this.ClientSize = new Size(1280, 720);
+            this.ClientSize = GameManager.WindowSize;
             this.DoubleBuffered = true;
             this.KeyPreview = true;
             this.KeyDown += Convergence_KeyDown;
