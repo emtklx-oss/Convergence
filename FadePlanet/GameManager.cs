@@ -10,10 +10,187 @@ namespace FadePlanet
 {
     
 
+    public enum RealmType { Starting, Air, Earth, Water, Fire, Boss, Victory }
+
     public static class GameManager
     {
         public static Player CurPlayer { get; private set; }
-        public static void SetPlayer(Player plr) { CurPlayer = plr;  }
+        public static void SetPlayer(Player plr) { CurPlayer = plr; }
+        public static bool GameWon { get; private set; } = false;
+        public static float VictoryFadeAlpha { get; private set; } = 0f;
+
+        #region Realm Progression
+        public static RealmType CurrentRealm { get; private set; } = RealmType.Starting;
+        public static int EnemiesDefeatedInRealm { get; private set; } = 0;
+        public static int TotalEnemiesToSpawn { get; private set; } = 10;
+        public static int EnemiesSpawnedInRealm { get; private set; } = 0;
+        public static bool TokenSpawned { get; private set; } = false;
+        public static bool BossDefeated { get; private set; } = false;
+
+        public static void ResetRealmState()
+        {
+            EnemiesDefeatedInRealm = 0;
+            EnemiesSpawnedInRealm = 0;
+            TokenSpawned = false;
+        }
+
+        public static void AdvanceToNextRealm()
+        {
+            switch (CurrentRealm)
+            {
+                case RealmType.Starting:
+                    CurrentRealm = RealmType.Air;
+                    LoadRoom_Two();
+                    break;
+                case RealmType.Air:
+                    CurrentRealm = RealmType.Earth;
+                    LoadRoom_Three();
+                    break;
+                case RealmType.Earth:
+                    CurrentRealm = RealmType.Water;
+                    LoadRoom_Four();
+                    break;
+                case RealmType.Water:
+                    CurrentRealm = RealmType.Fire;
+                    LoadRoom_Five();
+                    break;
+                case RealmType.Fire:
+                    CurrentRealm = RealmType.Boss;
+                    LoadRoom_Six();
+                    break;
+                case RealmType.Boss:
+                    CurrentRealm = RealmType.Victory;
+                    ShowVictoryScreen();
+                    break;
+            }
+            ResetRealmState();
+        }
+
+        public static void OnEnemyDefeated()
+        {
+            EnemiesDefeatedInRealm++;
+
+            // Check if all enemies defeated and token not yet spawned
+            if (EnemiesDefeatedInRealm >= TotalEnemiesToSpawn && !TokenSpawned && CurrentRealm != RealmType.Boss)
+            {
+                SpawnRealmToken();
+            }
+            else if (CurrentRealm == RealmType.Boss && EnemiesDefeatedInRealm >= 1 && !BossDefeated)
+            {
+                BossDefeated = true;
+                AdvanceToNextRealm();
+            }
+        }
+
+        public static void SpawnRealmToken()
+        {
+            TokenSpawned = true;
+            ElementType tokenType = ElementType.None;
+
+            switch (CurrentRealm)
+            {
+                case RealmType.Air:
+                    tokenType = ElementType.Air;
+                    break;
+                case RealmType.Earth:
+                    tokenType = ElementType.Earth;
+                    break;
+                case RealmType.Water:
+                    tokenType = ElementType.Water;
+                    break;
+                case RealmType.Fire:
+                    tokenType = ElementType.Fire;
+                    break;
+            }
+
+            if (tokenType != ElementType.None)
+            {
+                // Spawn token at center of screen
+                Point tokenPos = new Point(640 - 33, 360 - 33);
+                new Item(tokenPos, new Size(67, 67), ItemType.Token, tokenType);
+            }
+        }
+
+        public static void OnTokenCollected()
+        {
+            AdvanceToNextRealm();
+        }
+
+        private static void ShowVictoryScreen()
+        {
+            GameWon = true;
+            VictoryFadeAlpha = 0f;
+        }
+
+        public static void UpdateVictoryFade()
+        {
+            if (GameWon && VictoryFadeAlpha < 1f)
+            {
+                VictoryFadeAlpha += 0.01f;
+                if (VictoryFadeAlpha > 1f)
+                    VictoryFadeAlpha = 1f;
+            }
+        }
+
+        public static void TrySpawnEnemies()
+        {
+            if (CurrentRealm == RealmType.Starting || CurrentRealm == RealmType.Boss || CurrentRealm == RealmType.Victory)
+                return;
+
+            // Spawn enemies if we haven't reached the total yet
+            int enemiesAlive = GetObjectsByType(ObjectType.Enemy).Count;
+            int enemiesToSpawn = Math.Min(2, TotalEnemiesToSpawn - EnemiesSpawnedInRealm);
+
+            if (enemiesToSpawn > 0 && enemiesAlive < 3)
+            {
+                for (int i = 0; i < enemiesToSpawn; i++)
+                {
+                    SpawnEnemyForCurrentRealm();
+                    EnemiesSpawnedInRealm++;
+                }
+            }
+        }
+
+        private static void SpawnEnemyForCurrentRealm()
+        {
+            EnemyType enemyType = EnemyType.Air;
+
+            switch (CurrentRealm)
+            {
+                case RealmType.Air:
+                    enemyType = EnemyType.Air;
+                    break;
+                case RealmType.Earth:
+                    enemyType = EnemyType.Earth;
+                    break;
+                case RealmType.Water:
+                    enemyType = EnemyType.Water;
+                    break;
+                case RealmType.Fire:
+                    enemyType = EnemyType.Fire;
+                    break;
+            }
+
+            // Random spawn position on the right side of screen
+            Random rand = new Random();
+            int x = rand.Next(900, 1200);
+            int y = rand.Next(200, 500);
+            Point spawnPos = new Point(x, y);
+
+            Enemy enemy = new Enemy(spawnPos, new Size((int)(32 * 3.0f), (int)(32 * 3.0f)), enemyType);
+        }
+
+        private static void SpawnBoss()
+        {
+            // Spawn boss at center with larger size and more health
+            Point bossPos = new Point(640 - 96, 360 - 96);
+            Enemy boss = new Enemy(bossPos, new Size(192, 192), EnemyType.Fire);
+
+            // Give boss 5x normal health
+            boss.SetMaxHealth(500);
+        }
+        #endregion
+
         #region Object Management
 
         private static readonly Dictionary<ObjectType, Dictionary<int, WorldObject>> RoomObjects = new Dictionary<ObjectType, Dictionary<int, WorldObject>>();
@@ -102,27 +279,80 @@ namespace FadePlanet
 
             new OldMan(new Point(800, 250), new Size(250, 250));
 
-
+            ResetRealmState();
         }
         public static void LoadRoom_Two()
         {
-            //Air
+            //Air Realm
+            //Clear all existing objects except player
+            ClearAllObjectsExceptPlayer();
+
+            //Reset player position to left side
+            CurPlayer.Position = new PointF(100, 250);
+
+            ResetRealmState();
         }
         public static void LoadRoom_Three()
         {
-            //Water
+            //Earth Realm
+            ClearAllObjectsExceptPlayer();
+            CurPlayer.Position = new PointF(100, 250);
+            ResetRealmState();
         }
         public static void LoadRoom_Four()
         {
-            //Earth
+            //Water Realm
+            ClearAllObjectsExceptPlayer();
+            CurPlayer.Position = new PointF(100, 250);
+            ResetRealmState();
         }
         public static void LoadRoom_Five()
         {
-            //Fire
+            //Fire Realm
+            ClearAllObjectsExceptPlayer();
+            CurPlayer.Position = new PointF(100, 250);
+            ResetRealmState();
         }
         public static void LoadRoom_Six()
         {
-            //Boss
+            //Boss Realm
+            ClearAllObjectsExceptPlayer();
+            CurPlayer.Position = new PointF(100, 250);
+            ResetRealmState();
+
+            //Spawn the boss
+            SpawnBoss();
+        }
+
+        private static void ClearAllObjectsExceptPlayer()
+        {
+            //Clear all enemies
+            var enemies = GetObjectsByType(ObjectType.Enemy).ToList();
+            foreach (var enemy in enemies)
+            {
+                DespawnObject(enemy);
+            }
+
+            //Clear all items
+            var items = GetObjectsByType(ObjectType.Item).ToList();
+            foreach (var item in items)
+            {
+                DespawnObject(item);
+            }
+
+            //Clear all projectiles
+            var projectiles = GetObjectsByType(ObjectType.Projectile).ToList();
+            foreach (var proj in projectiles)
+            {
+                DespawnObject(proj);
+            }
+
+            //Clear all friendlies (old man)
+            var friendlies = GetObjectsByType(ObjectType.Friendly).ToList();
+            foreach (var friendly in friendlies)
+            {
+                DespawnObject(friendly);
+            }
         }
         #endregion
     }

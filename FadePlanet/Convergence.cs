@@ -111,9 +111,13 @@ namespace FadePlanet
         // --- GAME LOOP UPDATE ---
         private void GameLoop_Tick(object sender, EventArgs e)
         {
+            // 1. Try spawn enemies for current realm
+            GameManager.TrySpawnEnemies();
 
+            // 2. Update victory fade
+            GameManager.UpdateVictoryFade();
 
-            // 2. Update player
+            // 3. Update player
             UpdateObjectType(ObjectType.Player, (obj) =>
             {
                 if (obj is Player p)
@@ -276,6 +280,45 @@ namespace FadePlanet
                 );
             }
 
+            // Draw victory screen
+            if (GameManager.GameWon)
+            {
+                DrawVictoryScreen(e.Graphics);
+            }
+
+        }
+
+        private void DrawVictoryScreen(Graphics g)
+        {
+            // Draw semi-transparent overlay
+            int alpha = (int)(GameManager.VictoryFadeAlpha * 255);
+            using (SolidBrush overlayBrush = new SolidBrush(Color.FromArgb(alpha, 0, 0, 0)))
+            {
+                g.FillRectangle(overlayBrush, 0, 0, ClientSize.Width, ClientSize.Height);
+            }
+
+            // Draw victory text when fade is complete
+            if (GameManager.VictoryFadeAlpha >= 1f)
+            {
+                using (Font titleFont = new Font("Arial", 48, FontStyle.Bold))
+                using (Font messageFont = new Font("Arial", 24))
+                using (SolidBrush textBrush = new SolidBrush(Color.White))
+                {
+                    string title = "VICTORY!";
+                    string message = "You have restored life to the world!";
+
+                    SizeF titleSize = g.MeasureString(title, titleFont);
+                    SizeF messageSize = g.MeasureString(message, messageFont);
+
+                    float titleX = (ClientSize.Width - titleSize.Width) / 2;
+                    float titleY = ClientSize.Height / 2 - 50;
+                    float messageX = (ClientSize.Width - messageSize.Width) / 2;
+                    float messageY = titleY + titleSize.Height + 30;
+
+                    g.DrawString(title, titleFont, textBrush, titleX, titleY);
+                    g.DrawString(message, messageFont, textBrush, messageX, messageY);
+                }
+            }
         }
     }
 }

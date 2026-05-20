@@ -88,24 +88,29 @@ namespace FadePlanet
         private void ShowTutorial()
         {
             string tutorialText = "Welcome, young one!\n\n" +
-                "In this land, you must survive by:\n\n" +
-                "1. FIGHTING ENEMIES\n" +
-                "Use your sword to defeat enemies. Press right-click for basic attack.\n" +
-                "Switch between scroll types to use different abilities with left-click\n" +
-                "Abilities:\n\n" +
+                "The world's life force has been drained, and you must restore it!\n\n" +
+                "YOUR QUEST:\n" +
+                "You must travel through the elemental realms in order:\n\n" +
+                "1. AIR REALM - Defeat the air enemies\n" +
+                "2. EARTH REALM - Defeat the earth enemies\n" +
+                "3. WATER REALM - Defeat the water enemies\n" +
+                "4. FIRE REALM - Defeat the fire enemies\n" +
+                "5. BOSS REALM - Defeat the final boss\n\n" +
+                "Each realm has waves of enemies. Defeat them all to spawn a token.\n" +
+                "Collect the token to teleport to the next realm.\n\n" +
+                "CONTROLS:\n" +
+                "• RIGHT-CLICK: Basic sword attack\n" +
+                "• LEFT-CLICK: Attack with your current ability\n" +
+                "• 1-4 KEYS: Switch between elemental scrolls\n" +
+                "• 5 KEY: Select healing potion\n\n" +
+                "ABILITIES:\n" +
                 "   • Fire: Shoot fireballs at enemies\n" +
                 "   • Water: Create protective ripples\n" +
                 "   • Earth: Raise rock barriers for defense\n" +
                 "   • Air: Swift aerial attacks\n\n" +
-                "2. COLLECTING TOKENS\n" +
-                "Defeat all enemies of each realm to collect the realm's token." +
-                "3. MANAGING STAMINA\n" +
-                "Each ability costs stamina. Rest to regenerate it.\n\n" +
-                "4. CURRENCY & POTIONS\n" +
-                "Defeat enemies to earn currency. Use it at my shop to buy healing potions.";
-                
+                "Defeat enemies to earn currency. Use it at my shop to buy potions.";
 
-            DialogResult result = MessageBox.Show(tutorialText, "Tutorial - Welcome", MessageBoxButtons.OK);
+            DialogResult result = MessageBox.Show(tutorialText, "Your Quest", MessageBoxButtons.OK);
             if (result == DialogResult.OK)
             {
                 ShowMenu();
@@ -117,7 +122,7 @@ namespace FadePlanet
 
             string menuText = "Greetings again, traveler!\n\nWhat can I help you with?";
 
-            using (DialogWindow = new DialogForm(menuText,"Old Man", "Tutorial", "Shop", "Nevermind"))
+            using (DialogWindow = new DialogForm(menuText,"Old Man", "Begin Quest", "Tutorial", "Shop", "Nevermind"))
             {
                 DialogWindow.ShowDialog();
 
@@ -125,6 +130,9 @@ namespace FadePlanet
 
                 switch (selectedButton)
                 {
+                    case "Begin Quest":
+                        BeginQuest();
+                        break;
                     case "Tutorial":
                         ShowTutorialAgain();
                         break;
@@ -139,6 +147,16 @@ namespace FadePlanet
                         break;
                 }
             }
+        }
+
+        private void BeginQuest()
+        {
+            string questText = "Good luck, brave warrior!\n\n" +
+                "Head to the right to begin your journey through the Air Realm.\n" +
+                "Defeat all enemies to claim the Air Token and proceed to the next realm.";
+
+            MessageBox.Show(questText, "Begin Quest", MessageBoxButtons.OK);
+            GameManager.AdvanceToNextRealm();
         }
 
         private void ShowTutorialAgain()

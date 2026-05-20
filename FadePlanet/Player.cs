@@ -63,6 +63,7 @@ namespace FadePlanet
             {
                 case ItemType.Token:
                     AddToken(item.TokenType);
+                    GameManager.OnTokenCollected();
                     break;
                 case ItemType.Potion:
                     Potions++;

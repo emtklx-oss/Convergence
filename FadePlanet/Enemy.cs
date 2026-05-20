@@ -403,6 +403,7 @@ namespace FadePlanet
         public new void OnDeath()
         {
             GameManager.CurPlayer.AddCurrency(1);
+            GameManager.OnEnemyDefeated();
             GameManager.DespawnObject(this);
         }
 
@@ -412,6 +413,12 @@ namespace FadePlanet
             State = EnemyState.Stunned;
             animFrame = 0;
             animTimer = 0;
+        }
+
+        public void SetMaxHealth(int newMaxHealth)
+        {
+            MaxHealth = newMaxHealth;
+            Health = newMaxHealth;
         }
 
         // =====================================================================
