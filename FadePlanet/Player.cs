@@ -480,7 +480,18 @@ namespace FadePlanet
 
                         if (BarrierHitbox.IntersectsWith(enemy.Bounds))
                         {
-                            enemy.TakeDamage(RockBarrierDamage, attackSource, RockBarrierKnockbackDistance);
+                            // Check if it's a boss - only damage in final phase
+                            if (enemy is Boss boss)
+                            {
+                                if (boss.CurrentPhase == BossPhase.Final)
+                                {
+                                    boss.TakeDamage(RockBarrierDamage);
+                                }
+                            }
+                            else
+                            {
+                                enemy.TakeDamage(RockBarrierDamage, attackSource, RockBarrierKnockbackDistance);
+                            }
                         }
                     }
                     barrierHitDealtThisSwing = true;
@@ -519,7 +530,18 @@ namespace FadePlanet
 
                         if (SwordHitbox.IntersectsWith(enemy.Bounds))
                         {
-                            enemy.TakeDamage(SwordDamage, attackSource);
+                            // Check if it's a boss - only damage in final phase
+                            if (enemy is Boss boss)
+                            {
+                                if (boss.CurrentPhase == BossPhase.Final)
+                                {
+                                    boss.TakeDamage(SwordDamage);
+                                }
+                            }
+                            else
+                            {
+                                enemy.TakeDamage(SwordDamage, attackSource);
+                            }
                         }
                     }
                     swordHitDealtThisSwing = true;
@@ -561,11 +583,10 @@ namespace FadePlanet
         public void ApplyKnockback(PointF sourcePosition)
         {
             float kDx = Position.X - sourcePosition.X;
-            float kDy = Position.Y - sourcePosition.Y;
-            float kLen = (float)Math.Sqrt(kDx * kDx + kDy * kDy);
 
-            knockbackDirection = kLen > 0
-                ? new PointF(kDx / kLen, kDy / kLen)
+            // Only use X-axis knockback, no Y-axis
+            knockbackDirection = kDx != 0
+                ? new PointF(Math.Sign(kDx), 0f)
                 : new PointF(1f, 0f);
 
             knockbackRemaining = PlayerKnockbackDistance;
@@ -589,19 +610,28 @@ namespace FadePlanet
         {
             if (IsPlayingHeal)
             {
-                DrawSpritesheetFrame(g, isFacingLeft ? healSheetL : healSheetR, HealFramePositions, healFrameIndex, 448);
+                if (isFacingLeft)
+                    DrawSpritesheetFrameFlipped(g, healSheetL, HealFramePositions, healFrameIndex, 448);
+                else
+                    DrawSpritesheetFrame(g, healSheetR, HealFramePositions, healFrameIndex, 448);
                 return;
             }
 
             if (IsPlayingRockBarrier)
             {
-                DrawSpritesheetFrame(g, isFacingLeft ? rockBarrierSheetL : rockBarrierSheetR, RockBarrierFramePositions, rockBarrierFrameIndex, 448);
+                if (isFacingLeft)
+                    DrawSpritesheetFrameFlipped(g, rockBarrierSheetL, RockBarrierFramePositions, rockBarrierFrameIndex, 448);
+                else
+                    DrawSpritesheetFrame(g, rockBarrierSheetR, RockBarrierFramePositions, rockBarrierFrameIndex, 448);
                 return;
             }
 
             if (IsPlayingSlash)
             {
-                DrawSpritesheetFrame(g, isFacingLeft ? slashSheetL : slashSheetR, SlashFramePositions, slashFrameIndex, 224);
+                if (isFacingLeft)
+                    DrawSpritesheetFrameFlipped(g, slashSheetL, SlashFramePositions, slashFrameIndex, 224);
+                else
+                    DrawSpritesheetFrame(g, slashSheetR, SlashFramePositions, slashFrameIndex, 224);
                 return;
             }
 
@@ -615,6 +645,18 @@ namespace FadePlanet
 
             Point framePos = framePositions[frameIndex];
             int srcX = framePos.X;
+            Rectangle srcRect = new Rectangle(srcX, framePos.Y, 224, 224);
+            RectangleF destRect = new RectangleF(Position.X, Position.Y, 224, 224);
+            g.DrawImage(sheet, destRect, srcRect, GraphicsUnit.Pixel);
+        }
+
+        private void DrawSpritesheetFrameFlipped(Graphics g, Bitmap sheet, Point[] framePositions, int frameIndex, int maxFrameX)
+        {
+            if (sheet == null) return;
+
+            Point framePos = framePositions[frameIndex];
+            // For flipped spritesheet, calculate mirrored X position
+            int srcX = maxFrameX - framePos.X - 224;
             Rectangle srcRect = new Rectangle(srcX, framePos.Y, 224, 224);
             RectangleF destRect = new RectangleF(Position.X, Position.Y, 224, 224);
             g.DrawImage(sheet, destRect, srcRect, GraphicsUnit.Pixel);

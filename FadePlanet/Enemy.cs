@@ -187,7 +187,24 @@ namespace FadePlanet
                     {
                         // Close enough to attack - prepare leap
                         attackOrigin = Position;
-                        attackTarget = player.Position;
+
+                        // Calculate attack target as the edge of player's hitbox
+                        float playerHitboxLeft = player.Position.X + 72f;
+                        float playerHitboxRight = player.Position.X + 72f + 80f;
+                        float playerHitboxCenterY = player.Position.Y + 110f + 50f;
+
+                        // Set target to the edge of hitbox on the side enemy is approaching from
+                        if (facingLeft)
+                        {
+                            // Enemy is to the right, target left edge of hitbox
+                            attackTarget = new PointF(playerHitboxLeft, playerHitboxCenterY);
+                        }
+                        else
+                        {
+                            // Enemy is to the left, target right edge of hitbox
+                            attackTarget = new PointF(playerHitboxRight, playerHitboxCenterY);
+                        }
+
                         attackHitDealt = false;
                         returningToOrigin = false;
                         leapPrepareTimer = 0;

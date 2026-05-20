@@ -70,15 +70,17 @@ namespace FadePlanet
         {
             EnemiesDefeatedInRealm++;
 
+            // Notify boss if in boss realm
+            if (CurrentRealm == RealmType.Boss)
+            {
+                Boss boss = GetObjectsByType(ObjectType.Enemy).FirstOrDefault(obj => obj is Boss) as Boss;
+                boss?.OnEnemyDefeated();
+            }
+
             // Check if all enemies defeated and token not yet spawned
             if (EnemiesDefeatedInRealm >= TotalEnemiesToSpawn && !TokenSpawned && CurrentRealm != RealmType.Boss)
             {
                 SpawnRealmToken();
-            }
-            else if (CurrentRealm == RealmType.Boss && EnemiesDefeatedInRealm >= 1 && !BossDefeated)
-            {
-                BossDefeated = true;
-                AdvanceToNextRealm();
             }
         }
 
@@ -171,10 +173,10 @@ namespace FadePlanet
                     break;
             }
 
-            // Random spawn position on the right side of screen
+            // Random spawn position around the screen (not just right side)
             Random rand = new Random();
-            int x = rand.Next(900, 1200);
-            int y = rand.Next(200, 500);
+            int x = rand.Next(100, 1100);
+            int y = rand.Next(150, 550);
             Point spawnPos = new Point(x, y);
 
             Enemy enemy = new Enemy(spawnPos, new Size((int)(32 * 3.0f), (int)(32 * 3.0f)), enemyType);
@@ -182,12 +184,9 @@ namespace FadePlanet
 
         private static void SpawnBoss()
         {
-            // Spawn boss at center with larger size and more health
-            Point bossPos = new Point(640 - 96, 360 - 96);
-            Enemy boss = new Enemy(bossPos, new Size(192, 192), EnemyType.Fire);
-
-            // Give boss 5x normal health
-            boss.SetMaxHealth(500);
+            // Spawn boss at center with larger size
+            Point bossPos = new Point(640 - 245, 360 - 245);
+            Boss boss = new Boss(bossPos, new Size(490, 490));
         }
         #endregion
 

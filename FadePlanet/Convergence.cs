@@ -144,7 +144,16 @@ namespace FadePlanet
                 return true;
             });
 
-            foreach (Enemy en in GetObjectsByType(ObjectType.Enemy)) { en.Update(CurPlayer); }
+            foreach (Enemy en in GetObjectsByType(ObjectType.Enemy))
+            {
+                en.Update(CurPlayer);
+
+                // Update boss separately if it's a Boss instance
+                if (en is Boss boss)
+                {
+                    boss.Update(CurPlayer);
+                }
+            }
 
             // 5. Update all projectiles
             UpdateObjectType(ObjectType.Projectile, (obj) =>
