@@ -63,7 +63,7 @@ namespace FadePlanet
         public Boss(Point pos, Size size) : base(pos, size, EnemyType.Fire)
         {
             // Upscale boss 2x for Cuphead-style appearance
-            ObjSize = new Size(size.Width * 2, size.Height * 2);
+            ObjSize = new Size(size.Width * 1, size.Height * 1);
             LoadImages();
         }
 
@@ -77,8 +77,8 @@ namespace FadePlanet
             try
             {
                 string basePath = GetProjectRoot();
-                bossSheet = new Bitmap(Path.Combine(basePath, @"Graphics\Enemies\BossStatue.png"));
-                healthBarGraphic = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\BossHealthBarGraphic.png"));
+                bossSheet = new Bitmap(Path.Combine(basePath, @"Graphics\Enemies\Boss\BossStatue.png"));
+                healthBarGraphic = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\BossHealthGraphic.png"));
                 healthBarFill = Image.FromFile(Path.Combine(basePath, @"Graphics\UI\BossHealthBar.png"));
             }
             catch (Exception ex)

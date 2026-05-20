@@ -53,8 +53,8 @@ namespace FadePlanet
 
         #region Player Inventory
         public HashSet<ElementType> Tokens { get; set; } = new HashSet<ElementType>();
-        public int Potions { get; private set; } = 0;
-        public int Currency { get; private set; } = 0;
+        public int Potions { get; private set; } = 3;
+        public int Currency { get; private set; } = 30;
         public void AddCurrency(int amount) { Currency += amount; }
         public void AddPotions(int amount) { Potions += amount; }
         public void PickUpItem(Item item)

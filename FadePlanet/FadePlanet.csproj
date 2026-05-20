@@ -111,7 +111,7 @@
   <ItemGroup>
     <Content Include="Graphics\UI\BossHealthBar.png" />
     <Content Include="Graphics\UI\BossHealthGraphic.png" />
-    <EmbeddedResource Include="Graphics\Enemies\Boss\BossStatue.MultiElement.png">
+    <EmbeddedResource Include="Graphics\Enemies\Boss\BossStatue.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Graphics\Enemies\Idle\AirEnemyIdle.png">
