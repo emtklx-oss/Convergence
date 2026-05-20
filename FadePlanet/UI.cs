@@ -183,7 +183,7 @@ namespace FadePlanet
 
         public void SetSelectedSlot(int slot, bool scrollLocked)
         {
-            bool isScrollSlot = slot >= 1 && slot <= 4;
+            bool isScrollSlot = slot >= 1 && slot <= 6;
 
             if (isScrollSlot && scrollLocked)
             {

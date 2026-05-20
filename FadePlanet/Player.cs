@@ -827,7 +827,7 @@ namespace FadePlanet
             if (e.Button == MouseButtons.Left)
             {
                 // Slot 5: sword attacks only, no elemental attacks
-                if (selectedSlot == 5)
+                if (selectedSlot == 4)
                 {
                     TriggerSlashAnimation();
                     return;

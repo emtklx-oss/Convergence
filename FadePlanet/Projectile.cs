@@ -156,7 +156,7 @@ namespace FadePlanet
                 }
             }
             Boss boss = (Boss)GameManager.GetObjectsByType(ObjectType.Boss).FirstOrDefault();
-            if (Hitbox.IntersectsWith(boss.Hitbox))
+            if (boss != null && Hitbox.IntersectsWith(boss.Hitbox))
             {
                 if (boss.CurrentPhase == BossPhase.Final)
                 {
