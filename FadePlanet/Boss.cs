@@ -12,9 +12,9 @@ namespace FadePlanet
     internal class Boss : WorldObject
     {
         #region Boss Stats
-        private const int MaxHealth = 2000;
+        private const int MaxHealth = 500;
         public int Health { get; private set; } = MaxHealth;
-        private const int EnemiesPerPhase = 10;
+        private const int EnemiesPerPhase = 5;
         private int EnemiesDefeatedInPhase = 0;
 
         // Phase frame ranges (0-indexed)
@@ -199,7 +199,7 @@ namespace FadePlanet
                 }
 
                 Random rand = new Random();
-                int x = rand.Next(100, 1100);
+                int x = rand.Next(100, 500);
                 int y = rand.Next(150, 550);
                 Point spawnPos = new Point(x, y);
 
@@ -224,22 +224,17 @@ namespace FadePlanet
                 if (attackChoice == 0)
                 {
                     // Water ripple stun
-                    SpawnWaterRipple(player);
+                    //SpawnWaterRipple(player);
                 }
                 else
                 {
                     // Fireball
-                    SpawnFireball(player);
+                    //SpawnFireball(player);
                 }
             }
         }
 
-        private void SpawnWaterRipple(Player player)
-        {
-            // Create a ripple at player's position to stun them
-            PointF ripplePos = new PointF(player.Position.X + 112f - 32f, player.Position.Y + 112f - 32f);
-            new Ripple(ripplePos);
-        }
+    
 
         private void SpawnFireball(Player player)
         {
@@ -327,11 +322,6 @@ namespace FadePlanet
             float barX = Position.X + (ObjSize.Width / 2f) - (HealthBarWidth / 2f);
             float barY = Position.Y - HealthBarHeight - 20;
 
-            // Draw frame
-            if (healthBarGraphic != null)
-            {
-                g.DrawImage(healthBarGraphic, barX, barY, HealthBarWidth, HealthBarHeight);
-            }
 
             // Draw fill
             if (healthBarFill != null)
@@ -345,6 +335,14 @@ namespace FadePlanet
                     g.DrawImage(healthBarFill, fillRect);
                 }
             }
+
+            // Draw frame
+            if (healthBarGraphic != null)
+            {
+                g.DrawImage(healthBarGraphic, barX, barY, HealthBarWidth, HealthBarHeight);
+            }
+
+
         }
     }
 }

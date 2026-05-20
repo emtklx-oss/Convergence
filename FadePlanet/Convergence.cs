@@ -24,6 +24,8 @@ namespace FadePlanet
         private Image staminaBar;
         private Image inventorySlots;
 
+        
+
         private System.Windows.Forms.Timer gameLoop;
 
         private string GetProjectRoot()

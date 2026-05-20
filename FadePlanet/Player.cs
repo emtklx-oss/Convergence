@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,15 +21,17 @@ namespace FadePlanet
         private const float PlayerKnockbackDistance = 60f;
         private const float PlayerKnockbackSpeed = 5f;
 
+
+        private bool diedAlready = false;   
         // =====================================================================
         // SWORD ATTACK HITBOX SETTINGS
         // =====================================================================
         private const float SwordHitboxWidth = 140f;
         private const float SwordHitboxHeight = 100f;
         private const float SwordHitboxOffsetY = 80f;
-        private const int SwordDamage = 20;
+        private const int SwordDamage = 50;
         
-        private const int HealAmount = 40;
+        private const int HealAmount = 50;
         // =====================================================================
         private const float StaminaRegenPerSecond = 10f;
         private const float GameLoopDeltaSeconds = 0.016f; // matches 16ms timer in Convergence
@@ -910,13 +913,23 @@ namespace FadePlanet
             Health -= damage;
             if (Health <= 0)
             {
-                Health = 0;
+                Health = 0; 
                 OnDeath();
             }
         }
-        public new void OnDeath() { }
+
+        public new void OnDeath() 
+        { 
+            if (!diedAlready) 
+            { 
+                diedAlready = true; MessageBox.Show("You have died!");
+                Thread.Sleep(1000);
+                Application.Exit();
+            } 
+        }
+
         #endregion
 
-        
+
     }
 }
