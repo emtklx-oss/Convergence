@@ -29,7 +29,7 @@ namespace FadePlanet
         private const float SwordHitboxWidth = 140f;
         private const float SwordHitboxHeight = 100f;
         private const float SwordHitboxOffsetY = 80f;
-        private const int SwordDamage = 50;
+        private const int SwordDamage = 30;
         
         private const int HealAmount = 50;
         // =====================================================================
