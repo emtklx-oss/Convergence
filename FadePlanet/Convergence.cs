@@ -100,7 +100,7 @@ namespace FadePlanet
         }
         private void Convergence_Load(object sender, EventArgs e) 
         {
-            GameManager.LoadRoom_Six();
+            GameManager.LoadRoom_One();
         }
         private void Convergence_MouseClick(object sender, MouseEventArgs e)
         {

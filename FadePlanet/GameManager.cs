@@ -318,7 +318,7 @@ namespace FadePlanet
         {
             //Boss Realm
             ClearAllObjectsExceptPlayer();
-            SetPlayer(new Player(new Point(528, 250), new Size(224, 224)));
+            CurPlayer.Position = new PointF(100, 250);
             ResetRealmState();
 
             //Spawn the boss
