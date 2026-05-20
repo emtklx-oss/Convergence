@@ -9,7 +9,7 @@ namespace FadePlanet
 {
     public enum BossPhase { Air, Water, Earth, Fire, Final }
 
-    internal class Boss : Enemy
+    internal class Boss : WorldObject
     {
         #region Boss Stats
         private new const int MaxHealth = 2000;
@@ -60,7 +60,7 @@ namespace FadePlanet
         private const int HealthBarHeight = 30;
         #endregion
 
-        public Boss(Point pos, Size size) : base(pos, size, EnemyType.Fire)
+        public Boss(Point pos, Size size, ObjectType type = ObjectType.Boss) : base(pos, size, type)
         {
             // Upscale boss 2x for Cuphead-style appearance
             ObjSize = new Size(size.Width * 1, size.Height * 1);

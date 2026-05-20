@@ -46,9 +46,10 @@ namespace FadePlanet
 
             public override bool PrimaryAttack(Player player)
             {
+                if (!player.CanUseAbility(StaminaCost)) return false;
                 player.UseStamina(StaminaCost);
                 ShootFireball(player);
-                Console.WriteLine($"Primary attack of type: {Type}");
+               
                 return true;
             }
             
@@ -80,7 +81,7 @@ namespace FadePlanet
                 if (!player.CanUseAbility(StaminaCost)) return false;
                 player.UseStamina(StaminaCost);
                 SpawnRipple(player);
-                Console.WriteLine($"Primary attack of type: {Type}");
+                
                 return true;
             }
             public void SpawnRipple(Player player)
@@ -97,8 +98,9 @@ namespace FadePlanet
 
             public override bool PrimaryAttack(Player player)
             {
+                if (!player.CanUseAbility(StaminaCost)) return false;
                 player.UseStamina(StaminaCost);
-                Console.WriteLine($"Primary attack of type: {Type}");
+                
                 return true;
             }
 
@@ -111,8 +113,9 @@ namespace FadePlanet
 
             public override bool PrimaryAttack(Player player)
             {
+                if (!player.CanUseAbility(StaminaCost)) return false;
                 player.UseStamina(StaminaCost);
-                Console.WriteLine($"Primary attack of type: {Type}");
+               
                 return true;
             }
 

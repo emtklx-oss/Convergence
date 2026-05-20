@@ -13,7 +13,8 @@ namespace FadePlanet
         None,
         Wall,
         Enemy,
-        Friendly,
+        Boss,
+        OldMan,
         Player,
         Item,
         Projectile

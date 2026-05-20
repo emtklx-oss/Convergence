@@ -35,7 +35,7 @@ namespace FadePlanet
         );
         #endregion
 
-        public OldMan(PointF pos, SizeF size, ObjectType type = ObjectType.Friendly) : base(pos, size, type)
+        public OldMan(PointF pos, SizeF size, ObjectType type = ObjectType.OldMan) : base(pos, size, type)
         {
             LoadImage();
         }
@@ -180,10 +180,10 @@ namespace FadePlanet
         private void ShowShop()
         {
             string shopText = "Welcome to my shop!\n\n" +
-                "I sell healing potions for 1 currency each.\n" +
+                "I sell healing potions for 10 crystals each.\n" +
                 "(Shop functionality coming soon...)";
 
-            using (DialogWindow = new DialogForm("Old Man's Shop", shopText, "Potion - $1", "Nevermind"))
+            using (DialogWindow = new DialogForm("Old Man's Shop", shopText, "Potion - $10", "Nevermind"))
             {
                 DialogWindow.ShowDialog();
 
@@ -191,11 +191,11 @@ namespace FadePlanet
 
                 switch(selectedButton)
                 {
-                    case "Potion - $1":
-                        if (GameManager.CurPlayer.Currency >= 1)
+                    case "Potion - $10":
+                        if (GameManager.CurPlayer.Currency >= 10)
                         {
                             // Subtract 10 currency and add 1 potion
-                            GameManager.CurPlayer.AddCurrency(-1);
+                            GameManager.CurPlayer.AddCurrency(-10);
                             GameManager.CurPlayer.AddPotions(1);
                             MessageBox.Show("Thank you for your purchase!", "Purchase confirmed", MessageBoxButtons.OK);
                         }

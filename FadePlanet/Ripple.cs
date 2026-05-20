@@ -62,6 +62,7 @@ namespace FadePlanet
             if (CurrentRadius >= MaxRadius)
             {
                 GameManager.DespawnObject(this);
+                GameManager.CurPlayer.SetMovementState(true); // Reenable player movement
             }
         }
 
@@ -71,6 +72,7 @@ namespace FadePlanet
             {
                 foreach (Enemy enemy in enemyDict.Values.ToList())
                 {
+                    if (enemy is Boss) continue;
                     float dx = enemy.Position.X + 48f - Position.X;
                     float dy = enemy.Position.Y + 48f - Position.Y;
                     float distanceToEnemy = (float)Math.Sqrt(dx * dx + dy * dy);

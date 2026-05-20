@@ -774,8 +774,6 @@ namespace FadePlanet
             
 
             if (e.KeyCode == Keys.H) ShowHitbox = !ShowHitbox;
-          
-            if (e.KeyCode == Keys.J) TakeDamage(10);
         }
 
         public void HandleKeyUp(KeyEventArgs e)
