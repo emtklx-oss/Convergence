@@ -146,24 +146,25 @@ namespace FadePlanet
             {
                 foreach (Enemy enemy in enemyDict.Values.ToList())
                 {
-                    if (Bounds.IntersectsWith(enemy.Bounds))
+                    if (Hitbox.IntersectsWith(enemy.Hitbox))
                     {
-                        // Check if it's a boss - only damage in final phase
-                        if (enemy is Boss boss)
-                        {
-                            if (boss.CurrentPhase == BossPhase.Final)
-                            {
-                                boss.TakeDamage(ProjectileDamage);
-                            }
-                        }
-                        else
-                        {
-                            enemy.TakeDamage(ProjectileDamage, Position);
-                        }
+                        enemy.TakeDamage(ProjectileDamage, Position);
+                        
                         GameManager.DespawnObject(this);
                         return;
                     }
                 }
+            }
+            Boss boss = (Boss)GameManager.GetObjectsByType(ObjectType.Boss).FirstOrDefault();
+            if (Hitbox.IntersectsWith(boss.Hitbox))
+            {
+                if (boss.CurrentPhase == BossPhase.Final)
+                {
+                boss.TakeDamage(ProjectileDamage);
+                }
+                
+                GameManager.DespawnObject(this);
+                return;
             }
 
             // Check collision with player (for boss fireballs)

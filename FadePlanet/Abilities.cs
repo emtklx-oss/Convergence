@@ -49,10 +49,10 @@ namespace FadePlanet
                 if (!player.CanUseAbility(StaminaCost)) return false;
                 player.UseStamina(StaminaCost);
                 ShootFireball(player);
-               
+
                 return true;
             }
-            
+
             public void ShootFireball(Player player)
             {
                 PointF dir = player.GetAttackDirection();
@@ -81,7 +81,7 @@ namespace FadePlanet
                 if (!player.CanUseAbility(StaminaCost)) return false;
                 player.UseStamina(StaminaCost);
                 SpawnRipple(player);
-                
+
                 return true;
             }
             public void SpawnRipple(Player player)
@@ -100,7 +100,7 @@ namespace FadePlanet
             {
                 if (!player.CanUseAbility(StaminaCost)) return false;
                 player.UseStamina(StaminaCost);
-                
+
                 return true;
             }
 
@@ -108,16 +108,20 @@ namespace FadePlanet
         public class AirScroll : ScrollBase
         {
             public override ElementType Type => ElementType.Air;
-            public override float StaminaCost => 5f;
+            public override float StaminaCost => 50f;
             public override float CooldownMs => 800f; // 0.8 second cooldown
 
             public override bool PrimaryAttack(Player player)
             {
                 if (!player.CanUseAbility(StaminaCost)) return false;
                 player.UseStamina(StaminaCost);
-               
+
+                player.IsDashing = true;
+                player.DashTimer = 200f;
+
                 return true;
             }
+
 
         }
     }

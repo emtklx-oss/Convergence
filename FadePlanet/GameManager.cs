@@ -348,7 +348,7 @@ namespace FadePlanet
             }
 
             //Clear all friendlies (old man)
-            var friendlies = GetObjectsByType(ObjectType.Friendly).ToList();
+            var friendlies = GetObjectsByType(ObjectType.OldMan).ToList();
             foreach (var friendly in friendlies)
             {
                 DespawnObject(friendly);

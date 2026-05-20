@@ -111,6 +111,7 @@ namespace FadePlanet
         // --- GAME LOOP UPDATE ---
         private void GameLoop_Tick(object sender, EventArgs e)
         {
+
             // 1. Try spawn enemies for current realm
             GameManager.TrySpawnEnemies();
 
@@ -122,7 +123,7 @@ namespace FadePlanet
             {
                 if (obj is Player p)
                 {
-                    p.Update(GetObjectsByType(ObjectType.Enemy));
+                    p.Update();
                 }
             });
 
@@ -147,12 +148,12 @@ namespace FadePlanet
             foreach (Enemy en in GetObjectsByType(ObjectType.Enemy))
             {
                 en.Update(CurPlayer);
+            }
+            if (CurrentRealm == RealmType.Boss)
+            {
+                Boss boss = (Boss)GetObjectsByType(ObjectType.Boss).FirstOrDefault();
 
-                // Update boss separately if it's a Boss instance
-                if (en is Boss boss)
-                {
-                    boss.Update(CurPlayer);
-                }
+                boss.Update(CurPlayer);
             }
 
             // 5. Update all projectiles
@@ -203,7 +204,7 @@ namespace FadePlanet
                     }
                 }
             });
-            UpdateObjectType(ObjectType.Friendly, (obj) =>
+            UpdateObjectType(ObjectType.OldMan, (obj) =>
             {
                 if (obj is OldMan man)
                 {
@@ -272,7 +273,7 @@ namespace FadePlanet
             CurPlayer?.DrawHitbox(e.Graphics);
 
 
-            DrawObjectType(e.Graphics, ObjectType.Friendly, (obj) => obj is OldMan);
+            DrawObjectType(e.Graphics, ObjectType.OldMan, (obj) => obj is OldMan);
 
             // Draw UI
             if (healthGraphic != null && healthBar != null && staminaGraphic != null && staminaBar != null && inventorySlots != null)

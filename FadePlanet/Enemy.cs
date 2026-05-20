@@ -256,7 +256,7 @@ namespace FadePlanet
                                     Position.Y + (atDy / atLen) * AttackJumpSpeed
                                 );
 
-                                if (!attackHitDealt && Bounds.IntersectsWith(player.Hitbox))
+                                if (!attackHitDealt && Hitbox.IntersectsWith(player.Hitbox))
                                 {
                                     player.TakeDamage(Damage);
                                     player.ApplyKnockback(Position);
@@ -350,7 +350,7 @@ namespace FadePlanet
         private void ResolvePlayerOverlap(Player player)
         {
             RectangleF playerBox = RectangleF.Inflate(player.Hitbox, PlayerSeparationBuffer, PlayerSeparationBuffer);
-            RectangleF enemyBox = Bounds;
+            RectangleF enemyBox = Hitbox;
 
             if (!enemyBox.IntersectsWith(playerBox))
                 return;

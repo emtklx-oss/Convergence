@@ -27,9 +27,7 @@ namespace FadePlanet
         private const float SwordHitboxHeight = 100f;
         private const float SwordHitboxOffsetY = 80f;
         private const int SwordDamage = 20;
-        private const int RockBarrierDamage = 40;
-        private const float RockBarrierKnockbackDistance = 130f;
-        private const float BarrierHitboxWidth = 180f;
+        
         private const int HealAmount = 40;
         // =====================================================================
         private const float StaminaRegenPerSecond = 10f;
@@ -106,6 +104,15 @@ namespace FadePlanet
             { Keys.D3, new EarthScroll() },
             { Keys.D4, new AirScroll() }
         };
+        //Air dash
+        public float DashTimer = 0f;
+        public bool IsDashing = false;
+        
+
+        //Rock barrier
+        private const int RockBarrierDamage = 40;
+        private const float RockBarrierKnockbackDistance = 130f;
+        private const float BarrierHitboxWidth = 180f;
 
         public bool ScrollSwitchLocked { get; set; } = false;
         #endregion
@@ -410,8 +417,12 @@ namespace FadePlanet
 
         #endregion
         // Takes a plain list of WorldObjects so accessibility matches public
-        public void Update(List<WorldObject> enemyObjects)
+        public void Update()
         {
+            //List of enemies and the boss
+            List<Enemy> enemyObjects = GameManager.GetObjectsByType(ObjectType.Enemy)?.Cast<Enemy>().ToList();
+            Boss boss = GameManager.GetObjectsByType(ObjectType.Boss)?.FirstOrDefault() as Boss;
+
             RegenerateStamina();
 
             // Update ability cooldowns
@@ -521,28 +532,54 @@ namespace FadePlanet
                         Enemy enemy = obj as Enemy;
                         if (enemy == null) continue;
 
-                        if (BarrierHitbox.IntersectsWith(enemy.Bounds))
+                        if (BarrierHitbox.IntersectsWith(enemy.Hitbox))
                         {
-                            // Check if it's a boss - only damage in final phase
-                            if (enemy is Boss boss)
-                            {
-                                if (boss.CurrentPhase == BossPhase.Final)
-                                {
-                                    boss.TakeDamage(RockBarrierDamage);
-                                }
-                            }
-                            else
-                            {
-                                enemy.TakeDamage(RockBarrierDamage, attackSource, RockBarrierKnockbackDistance);
-                            }
+                            enemy.TakeDamage(RockBarrierDamage, attackSource, RockBarrierKnockbackDistance);
                         }
+                        
                     }
                     barrierHitDealtThisSwing = true;
+                }
+                else if (!barrierHitDealtThisSwing && boss != null)
+                {
+                    if (BarrierHitbox.IntersectsWith(boss.Hitbox))
+                    {
+                        //Only takes damage in final phase
+                        if (boss.CurrentPhase == BossPhase.Final)
+                        {
+                            boss.TakeDamage(RockBarrierDamage);
+                        }
+                    }
                 }
 
                 return;
             }
+            //Air dash 
+            if (IsDashing)
+            {
+                // High speed dash
+                float dashSpeed = 25f;
+                this.Position = new PointF(this.Position.X + (this.GetAttackDirection().X * dashSpeed),
+                                      this.Position.Y + (GetAttackDirection().Y * dashSpeed));
 
+                // Check for collisions with enemies to launch them
+                var enemies = GameManager.GetObjectsByType(ObjectType.Enemy);
+                RectangleF dashBounds = this.Hitbox;
+
+                foreach (var obj in enemies)
+                {
+                    if (dashBounds.IntersectsWith(obj.Hitbox))
+                    {
+                        obj.Position = new PointF(
+                            obj.Position.X + GetAttackDirection().X * 10f,
+                            obj.Position.Y + GetAttackDirection().Y * 10f
+                            ); // Knockback enemy in dash direction
+                    }
+                }
+
+                DashTimer -= GameLoopDeltaMs;
+                if (DashTimer <= 0) IsDashing = false;
+            }
             // Slash animation
             if (IsPlayingSlash)
             {
@@ -573,21 +610,22 @@ namespace FadePlanet
 
                         if (SwordHitbox.IntersectsWith(enemy.Bounds))
                         {
-                            // Check if it's a boss - only damage in final phase
-                            if (enemy is Boss boss)
-                            {
-                                if (boss.CurrentPhase == BossPhase.Final)
-                                {
-                                    boss.TakeDamage(SwordDamage);
-                                }
-                            }
-                            else
-                            {
-                                enemy.TakeDamage(SwordDamage, attackSource);
-                            }
+                            enemy.TakeDamage(SwordDamage, attackSource);  
                         }
                     }
+
                     swordHitDealtThisSwing = true;
+                }
+                else if (!swordHitDealtThisSwing && boss != null)
+                {
+                    if (SwordHitbox.IntersectsWith(boss.Hitbox))
+                    {
+                        // Check if it's a boss - only damage in final phase
+                        if (boss.CurrentPhase == BossPhase.Final)
+                        {
+                            boss.TakeDamage(SwordDamage);
+                        }
+                    }
                 }
 
                 return;
@@ -675,7 +713,7 @@ namespace FadePlanet
                     DrawSpritesheetFrame(g, rockBarrierSheetR, RockBarrierFramePositions, rockBarrierFrameIndex, 448);
                 return;
             }
-
+            
             if (IsPlayingSlash)
             {
                 if (isFacingLeft)
