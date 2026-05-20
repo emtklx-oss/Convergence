@@ -267,6 +267,8 @@ namespace FadePlanet
             // Draw all ripples
             DrawObjectType(e.Graphics, ObjectType.None, (obj) => obj is Ripple);
 
+            DrawObjectType(e.Graphics, ObjectType.Boss);
+
 
             // Draw player and hitbox
             CurPlayer?.Draw(e.Graphics);
