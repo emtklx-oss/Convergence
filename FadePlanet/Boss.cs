@@ -65,6 +65,8 @@ namespace FadePlanet
             // Upscale boss 2x for Cuphead-style appearance
             ObjSize = new Size(size.Width * 1, size.Height * 1);
             LoadImages();
+
+            GameManager.OnEnemyDefeatedEvent += HandleEnemyDefeated;
         }
 
         private string GetProjectRoot()
@@ -90,7 +92,7 @@ namespace FadePlanet
         public void Update(Player player)
         {
             // Boss is stationary - no movement
-
+            
             // Update animation
             UpdateAnimation();
 
@@ -202,6 +204,8 @@ namespace FadePlanet
                 Point spawnPos = new Point(x, y);
 
                 Enemy enemy = new Enemy(spawnPos, new Size((int)(32 * 3.0f), (int)(32 * 3.0f)), enemyType);
+
+                Console.WriteLine($"Boss Phase: {CurrentPhase}, Health: {Health}, Enemies Defeated in Phase: {EnemiesDefeatedInPhase}");
             }
         }
 
@@ -253,7 +257,7 @@ namespace FadePlanet
             new Projectile(fireballPos, new Size(32, 32), direction, 8f, ElementType.Fire, 30);
         }
 
-        public void OnEnemyDefeated()
+        public void HandleEnemyDefeated()
         {
             if (CurrentPhase != BossPhase.Final)
             {

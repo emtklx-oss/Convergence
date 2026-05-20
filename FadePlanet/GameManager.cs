@@ -67,17 +67,18 @@ namespace FadePlanet
             ResetRealmState();
         }
 
+        public static event Action OnEnemyDefeatedEvent;
+
+        public static void NotifyEnemyDefeated()
+        {
+            
+        }
         public static void OnEnemyDefeated()
         {
             EnemiesDefeatedInRealm++;
 
-            // Notify boss if in boss realm
-            if (CurrentRealm == RealmType.Boss)
-            {
-                Boss boss = GetObjectsByType(ObjectType.Enemy).FirstOrDefault(obj => obj is Boss) as Boss;
-                boss?.OnEnemyDefeated();
-            }
-
+            OnEnemyDefeatedEvent?.Invoke();
+            
             // Check if all enemies defeated and token not yet spawned
             if (EnemiesDefeatedInRealm >= TotalEnemiesToSpawn && !TokenSpawned && CurrentRealm != RealmType.Boss)
             {
@@ -317,7 +318,7 @@ namespace FadePlanet
         {
             //Boss Realm
             ClearAllObjectsExceptPlayer();
-            CurPlayer.Position = new PointF(100, 250);
+            SetPlayer(new Player(new Point(528, 250), new Size(224, 224)));
             ResetRealmState();
 
             //Spawn the boss

@@ -100,7 +100,7 @@ namespace FadePlanet
         }
         private void Convergence_Load(object sender, EventArgs e) 
         {
-            GameManager.LoadRoom_One();
+            GameManager.LoadRoom_Six();
         }
         private void Convergence_MouseClick(object sender, MouseEventArgs e)
         {
@@ -126,7 +126,13 @@ namespace FadePlanet
                     p.Update();
                 }
             });
-
+            UpdateObjectType(ObjectType.Boss, (obj) =>
+            {
+                if (obj is Boss b)
+                {
+                    b.Update(CurPlayer);
+                }
+            });
             // 3. Scroll animation milestones
             var (closingDone, openingDone) = gameUI.UpdateScrollAnimation();
 
