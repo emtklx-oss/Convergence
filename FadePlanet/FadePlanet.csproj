@@ -108,6 +108,8 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Graphics\UI\BossHealthBar.png" />
+    <Content Include="Graphics\UI\BossHealthGraphic.png" />
     <EmbeddedResource Include="Graphics\Enemies\Boss\BossStatue.MultiElement.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
@@ -163,6 +165,7 @@
     <EmbeddedResource Include="Graphics\Player\Attacks\MainCharacter.RockBarrier.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <Content Include="Graphics\Player\Attacks\Fireball.png" />
     <Content Include="Graphics\Player\Sword Animation\Slashing.png" />
     <Content Include="Graphics\Player\Tokens\ClaimingTokens1.png" />
     <Content Include="Graphics\Player\Tokens\ClaimingTokens2.png" />
